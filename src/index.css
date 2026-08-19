@@ -1,0 +1,494 @@
+@import "tailwindcss";
+@import "lenis/dist/lenis.css";
+
+/* ============================================================================
+   DESIGN TOKENS — "EDITORIAL NOIR"
+   A printed page, not a screen: warm paper ground, near-black ink, hairline
+   rules. The palette is monochrome by intent; a single burnt-vermilion spot
+   carries every live/state signal, the way a second plate does in print. Keep
+   its coverage under a few percent or it stops reading as an accent.
+   ============================================================================ */
+@theme {
+  --color-paper: #f2f0eb;
+  --color-paper-dim: #e9e6df;
+  --color-paper-deep: #ddd8ce;
+  --color-ink: #14110f;
+  --color-ink-soft: #4a4540;
+  --color-ink-faint: #8c857d;
+  --color-rule: #d3cdc2;
+  --color-spot: #c1440e;
+
+  --font-display: "Playfair Display", ui-serif, Georgia, serif;
+  --font-body: "Public Sans", ui-sans-serif, system-ui, sans-serif;
+
+  /* Editorial scale: a wide gap between display and text sizes is what makes a
+     page read as typeset rather than as a stack of components. */
+  --text-display-xl: clamp(3.5rem, 13vw, 12rem);
+  --text-display-lg: clamp(2.75rem, 8.5vw, 7.5rem);
+  --text-display-md: clamp(1.875rem, 4.5vw, 3.75rem);
+  --text-display-sm: clamp(1.375rem, 2.6vw, 2.125rem);
+
+  --ease-page: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-lift: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* ============================================================================
+   DARK GROUND
+   The token names are roles, not literal materials: `paper` is always the
+   ground and `ink` is always the figure, so every utility in the app flips
+   correctly by redefining the variables here rather than by branching in
+   markup. Tailwind v4 emits utilities as var() references, which is what makes
+   this work with no `dark:` variants anywhere.
+
+   Dark is not the light palette inverted — pure black against near-white is
+   harsher than paper ever is. This is a warm near-black with the ground tinted
+   toward the same brown as the light stock, and the spot lifted so it still
+   reads as vermilion rather than dried blood.
+   ============================================================================ */
+:root[data-theme='dark'] {
+  --color-paper: #0c0b0a;
+  --color-paper-dim: #14120f;
+  --color-paper-deep: #1e1a16;
+  --color-ink: #ece7df;
+  --color-ink-soft: #a49c93;
+  --color-ink-faint: #6f665e;
+  --color-rule: #2c2721;
+  --color-spot: #e2683c;
+}
+
+@layer base {
+  :root {
+    color-scheme: light;
+  }
+
+  :root[data-theme='dark'] {
+    color-scheme: dark;
+  }
+
+  html {
+    /* Lenis owns scrolling; native smooth behaviour would fight it. */
+    scroll-behavior: auto;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    background-color: var(--color-paper);
+    color: var(--color-ink);
+    font-family: var(--font-body);
+    overflow-x: hidden;
+    font-synthesis-weight: none;
+    text-rendering: optimizeLegibility;
+  }
+
+  /* Never removed, only styled — keyboard users get a first-class path. */
+  :focus-visible {
+    outline: 2px solid var(--color-spot);
+    outline-offset: 3px;
+    border-radius: 1px;
+  }
+
+  ::selection {
+    background: var(--color-ink);
+    color: var(--color-paper);
+  }
+
+  ::-webkit-scrollbar {
+    width: 3px;
+  }
+  ::-webkit-scrollbar-track {
+    background: var(--color-paper);
+  }
+  ::-webkit-scrollbar-thumb {
+    background: var(--color-rule);
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--color-ink);
+  }
+
+  @media (pointer: fine) {
+    html.has-custom-cursor,
+    html.has-custom-cursor * {
+      cursor: none !important;
+    }
+  }
+}
+
+/* ============================================================================
+   TYPOGRAPHY
+   ============================================================================ */
+.font-display {
+  font-family: var(--font-display);
+}
+.font-body {
+  font-family: var(--font-body);
+}
+
+.text-display-xl {
+  font-size: var(--text-display-xl);
+  line-height: 0.86;
+  letter-spacing: -0.03em;
+}
+.text-display-lg {
+  font-size: var(--text-display-lg);
+  line-height: 0.9;
+  letter-spacing: -0.025em;
+}
+.text-display-md {
+  font-size: var(--text-display-md);
+  line-height: 1.06;
+  letter-spacing: -0.015em;
+}
+
+/* Editorial eyebrow: tracked-out small caps, sans. Replaces the old monospace
+   telemetry label — a serif page has no reason to speak in terminal type. */
+.label {
+  font-family: var(--font-body);
+  font-size: clamp(0.625rem, 0.85vw, 0.75rem);
+  font-weight: 500;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+}
+
+/* Section numeral — the printed folio mark. */
+.folio {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: clamp(0.875rem, 1.2vw, 1.125rem);
+  color: var(--color-ink-faint);
+}
+
+/* Magazine drop cap for the lead paragraph of a section. */
+.drop-cap::first-letter {
+  font-family: var(--font-display);
+  font-weight: 700;
+  float: left;
+  font-size: 3.6em;
+  line-height: 0.82;
+  padding-right: 0.08em;
+  margin-top: 0.04em;
+}
+
+.text-balance-tight {
+  text-wrap: balance;
+}
+
+/* ============================================================================
+   SPLIT TEXT REVEAL
+   ============================================================================ */
+.split-line-mask {
+  overflow: hidden;
+  display: block;
+  /* Descenders get clipped by a tight mask — pad and pull back. */
+  padding-bottom: 0.14em;
+  margin-bottom: -0.14em;
+}
+
+.reveal-pending {
+  visibility: hidden;
+}
+
+/* ============================================================================
+   SURFACES & RULES
+   Print has no glass. Structure comes from hairlines and paper tints.
+   ============================================================================ */
+.rule {
+  height: 1px;
+  background: var(--color-rule);
+  transform-origin: left center;
+}
+
+.rule-ink {
+  height: 2px;
+  background: var(--color-ink);
+  transform-origin: left center;
+}
+
+.panel {
+  background: var(--color-paper-dim);
+  border: 1px solid var(--color-rule);
+  transition: background 0.5s var(--ease-page), border-color 0.5s var(--ease-page);
+}
+
+.panel:hover {
+  background: var(--color-paper-deep);
+  border-color: var(--color-ink-faint);
+}
+
+/* ============================================================================
+   PAPER TEXTURE
+   A fibrous tooth over the whole page. Multiply keeps it reading as stock
+   rather than as a grey film laid on top.
+   ============================================================================ */
+.paper-grain {
+  position: fixed;
+  inset: -150%;
+  width: 400%;
+  height: 400%;
+  pointer-events: none;
+  z-index: 9998;
+  opacity: 0.42;
+  mix-blend-mode: multiply;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.35'/%3E%3C/svg%3E");
+  animation: grain-shift 0.9s steps(4) infinite;
+  will-change: transform;
+}
+
+/* Multiply darkens, which is right for tooth on stock but would only muddy a
+   dark ground. On dark the same noise is screened back in as light grain. */
+:root[data-theme='dark'] .paper-grain {
+  mix-blend-mode: screen;
+  opacity: 0.16;
+}
+
+@keyframes grain-shift {
+  0% {
+    transform: translate3d(0, 0, 0);
+  }
+  25% {
+    transform: translate3d(-3%, 2%, 0);
+  }
+  50% {
+    transform: translate3d(2%, -3%, 0);
+  }
+  75% {
+    transform: translate3d(-2%, -2%, 0);
+  }
+  100% {
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+/* Ink bleed at the page edges — the faint darkening of a printed spread. */
+.page-edge {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 9997;
+  background: radial-gradient(
+    ellipse at center,
+    transparent 55%,
+    rgba(20, 17, 15, 0.07) 100%
+  );
+}
+
+:root[data-theme='dark'] .page-edge {
+  background: radial-gradient(
+    ellipse at center,
+    transparent 45%,
+    rgba(0, 0, 0, 0.45) 100%
+  );
+}
+
+/* ============================================================================
+   PATTERNS
+   ============================================================================ */
+.bg-grid-column {
+  background-size: 100% 100%;
+  background-image: repeating-linear-gradient(
+    to right,
+    transparent,
+    transparent calc(8.333% - 1px),
+    rgba(20, 17, 15, 0.05) calc(8.333% - 1px),
+    rgba(20, 17, 15, 0.05) 8.333%
+  );
+}
+
+.edge-fade-x {
+  mask-image: linear-gradient(to right, transparent, black 8%, black 92%, transparent);
+  -webkit-mask-image: linear-gradient(to right, transparent, black 8%, black 92%, transparent);
+}
+
+/* ============================================================================
+   INTERACTION PRIMITIVES
+   ============================================================================ */
+.link-underline {
+  position: relative;
+  display: inline-block;
+}
+.link-underline::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: -2px;
+  width: 100%;
+  height: 1px;
+  background: currentColor;
+  transform: scaleX(0);
+  transform-origin: right center;
+  transition: transform 0.5s var(--ease-page);
+}
+.link-underline:hover::after,
+.link-underline:focus-visible::after {
+  transform: scaleX(1);
+  transform-origin: left center;
+}
+
+/* Label swaps for a duplicate sliding up from below. */
+.btn-swap {
+  position: relative;
+  overflow: hidden;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.btn-swap > .btn-swap-inner {
+  display: block;
+  transition: transform 0.55s var(--ease-page);
+}
+.btn-swap > .btn-swap-clone {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transform: translateY(105%);
+  transition: transform 0.55s var(--ease-page);
+}
+.btn-swap:hover > .btn-swap-inner,
+.btn-swap:focus-visible > .btn-swap-inner {
+  transform: translateY(-105%);
+}
+.btn-swap:hover > .btn-swap-clone,
+.btn-swap:focus-visible > .btn-swap-clone {
+  transform: translateY(0);
+}
+
+.field-input {
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid var(--color-rule);
+  color: var(--color-ink);
+  padding: 0.9rem 0;
+  width: 100%;
+  font-family: var(--font-body);
+  font-size: 15px;
+  transition: border-color 0.4s var(--ease-page);
+}
+
+.field-input:focus {
+  outline: none;
+  border-bottom-color: var(--color-ink);
+}
+
+.field-input:focus-visible {
+  outline: none;
+}
+
+.field-input::placeholder {
+  color: var(--color-ink-faint);
+  letter-spacing: 0.02em;
+}
+
+.skip-link {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 10000;
+  transform: translateY(-120%);
+  transition: transform 0.3s var(--ease-page);
+}
+.skip-link:focus-visible {
+  transform: translateY(0);
+}
+
+/* ============================================================================
+   FULL-HEIGHT PORTRAIT BLEED
+   The figure dissolves into the ground on every inner edge instead of ending at
+   a crop. Two masks are composed: a horizontal one that fades toward the copy,
+   and a vertical one that softens the top and bottom.
+   ============================================================================ */
+.portrait-bleed {
+  /* Held deliberately low. The form sits on top of the left half of this
+     element and there is no layout that clears it — a full-height figure and a
+     right-hand form necessarily overlap — so the figure has to stay faint
+     enough that field labels and the copy button keep their contrast. */
+  opacity: 0.26;
+  mix-blend-mode: multiply;
+  -webkit-mask-image: linear-gradient(
+      to right,
+      transparent 0%,
+      rgba(0, 0, 0, 0.18) 42%,
+      black 88%
+    ),
+    linear-gradient(to bottom, transparent 0%, black 18%, black 82%, transparent 100%);
+  mask-image: linear-gradient(
+      to right,
+      transparent 0%,
+      rgba(0, 0, 0, 0.18) 42%,
+      black 88%
+    ),
+    linear-gradient(to bottom, transparent 0%, black 18%, black 82%, transparent 100%);
+  -webkit-mask-composite: source-in;
+  mask-composite: intersect;
+}
+
+:root[data-theme='dark'] .portrait-bleed {
+  /* Screen on dark: the photograph's own black surround drops away and only the
+     lit figure survives — the same read the light ground gets from multiply. */
+  opacity: 0.34;
+  mix-blend-mode: screen;
+}
+
+/* Phones stack the form under the copy, so the figure would sit directly
+   behind body text with nowhere to go. */
+@media (max-width: 767px) {
+  .portrait-bleed {
+    opacity: 0.14;
+  }
+}
+
+/* ============================================================================
+   TOUCH TARGETS
+   Editorial type is small by nature, which left a dozen controls 16–39px tall
+   on a phone — under the 44px minimum. Height is added only on coarse pointers,
+   so the tight desktop typography is untouched. Scoped to standalone controls
+   (`data-cursor`) rather than every anchor, so inline links inside prose don't
+   get boxed out.
+   ============================================================================ */
+@media (pointer: coarse) {
+  a[data-cursor],
+  button[data-cursor],
+  .skip-link {
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+  }
+}
+
+/* Audio-on equaliser bars — visible proof the sound toggle did something. */
+@keyframes eq-bounce {
+  0%,
+  100% {
+    height: 3px;
+  }
+  50% {
+    height: 12px;
+  }
+}
+
+.eq-bar {
+  height: 3px;
+  animation: eq-bounce 0.9s ease-in-out infinite;
+}
+
+/* ============================================================================
+   REDUCED MOTION
+   ============================================================================ */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  .paper-grain {
+    animation: none;
+  }
+
+  .reveal-pending {
+    visibility: visible;
+  }
+}
