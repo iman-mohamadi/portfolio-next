@@ -223,7 +223,7 @@ export const Woodcoder3DModal: React.FC<Woodcoder3DModalProps> = ({ isOpen, onCl
         aria-modal="true"
         aria-label="Woodcoder — parametric 3D experience"
         tabIndex={-1}
-        className="fixed inset-0 z-[100] flex items-center justify-center p-4 md:p-8 bg-ink/75 backdrop-blur-sm overflow-y-auto"
+        className="fixed inset-0 z-[100] flex items-center justify-center p-4 md:p-8 bg-black/70 backdrop-blur-sm overflow-y-auto"
       >
         <div className="absolute inset-0" onClick={onClose} aria-hidden="true" />
         <motion.div
@@ -231,12 +231,12 @@ export const Woodcoder3DModal: React.FC<Woodcoder3DModalProps> = ({ isOpen, onCl
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.95, y: 20 }}
           transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
-          className="relative w-full max-w-5xl bg-[#E9E6DF] border border-rule shadow-[0_24px_60px_-20px_rgba(20,17,15,0.35)]  overflow-hidden my-auto max-h-[95vh] flex flex-col"
+          className="relative w-full max-w-5xl bg-paper-dim border border-rule shadow-[0_24px_60px_-20px_rgba(20,17,15,0.35)]  overflow-hidden my-auto max-h-[95vh] flex flex-col"
         >
           {/* Header */}
-          <div className="flex items-center justify-between px-6 py-4 border-b border-rule bg-[#E9E6DF]">
+          <div className="flex items-center justify-between px-6 py-4 border-b border-rule bg-paper-dim">
             <div className="flex items-center gap-3">
-              <span className="w-2 h-2 rounded-full bg-[#C1440E]"></span>
+              <span className="w-2 h-2 rounded-full bg-spot"></span>
               <span className="text-xs uppercase tracking-[0.2em] text-ink">
                 Woodcoder PARAMETRIC MESH ENGINE
               </span>
@@ -253,12 +253,12 @@ export const Woodcoder3DModal: React.FC<Woodcoder3DModalProps> = ({ isOpen, onCl
           {/* Viewport and Controls Grid */}
           <div className="grid grid-cols-1 lg:grid-cols-3 flex-1 overflow-hidden">
             {/* 3D Viewport */}
-            <div className="lg:col-span-2 relative min-h-[350px] lg:min-h-[480px] bg-[#F2F0EB] flex items-center justify-center">
+            <div className="lg:col-span-2 relative min-h-[350px] lg:min-h-[480px] bg-paper flex items-center justify-center">
               <div ref={canvasContainerRef} className="w-full h-full cursor-grab active:cursor-grabbing" />
 
               {/* Viewport HUD Overlays */}
-              <div className="absolute top-4 left-4 text-[10px] text-ink-faint bg-ink/60 backdrop-blur-md p-2.5 border border-rule  space-y-1">
-                <div className="flex items-center gap-2 text-[#C1440E]">
+              <div className="absolute top-4 left-4 text-[10px] text-white/70 bg-black/60 backdrop-blur-md p-2.5 border border-rule  space-y-1">
+                <div className="flex items-center gap-2 text-spot">
                   <Box className="w-3 h-3" />
                   <span>RENDER ENGINE: THREE.JS WEBGL2</span>
                 </div>
@@ -271,19 +271,19 @@ export const Woodcoder3DModal: React.FC<Woodcoder3DModalProps> = ({ isOpen, onCl
               <div className="absolute bottom-4 right-4 flex items-center gap-2">
                 <button
                   onClick={() => setIsRotating(!isRotating)}
-                  className="text-[10px] uppercase tracking-wider bg-ink/70 hover:bg-white/20 text-ink px-3 py-1.5 border border-rule  flex items-center gap-1.5 cursor-pointer backdrop-blur-md transition-colors"
+                  className="text-[10px] uppercase tracking-wider bg-black/70 hover:bg-white/20 text-white/85 px-3 py-1.5 border border-white/20 flex items-center gap-1.5 cursor-pointer backdrop-blur-md transition-colors"
                 >
-                  {isRotating ? <Pause className="w-3 h-3 text-[#C1440E]" /> : <Play className="w-3 h-3" />}
+                  {isRotating ? <Pause className="w-3 h-3 text-spot" /> : <Play className="w-3 h-3" />}
                   <span>{isRotating ? 'Pause Spin' : 'Auto Spin'}</span>
                 </button>
               </div>
             </div>
 
             {/* Parametric Controls Panel */}
-            <div className="p-6 bg-[#DDD8CE] border-t lg:border-t-0 lg:border-l border-rule overflow-y-auto space-y-6">
+            <div className="p-6 bg-paper-deep border-t lg:border-t-0 lg:border-l border-rule overflow-y-auto space-y-6">
               <div className="flex items-center justify-between">
                 <h3 className="font-display font-semibold text-lg text-ink flex items-center gap-2">
-                  <Sliders className="w-4 h-4 text-[#C1440E]" /> Parametric Dimensions
+                  <Sliders className="w-4 h-4 text-spot" /> Parametric Dimensions
                 </h3>
                 <button
                   onClick={() => {
@@ -308,7 +308,7 @@ export const Woodcoder3DModal: React.FC<Woodcoder3DModalProps> = ({ isOpen, onCl
                 <div>
                   <div className="flex justify-between text-ink-soft mb-1">
                     <span>Width (X-Axis):</span>
-                    <span className="text-[#C1440E]">{width.toFixed(1)}m</span>
+                    <span className="text-spot">{width.toFixed(1)}m</span>
                   </div>
                   <input
                     type="range"
@@ -317,7 +317,7 @@ export const Woodcoder3DModal: React.FC<Woodcoder3DModalProps> = ({ isOpen, onCl
                     step="0.1"
                     value={width}
                     onChange={(e) => setWidth(parseFloat(e.target.value))}
-                    className="w-full accent-[#C1440E] bg-rule  h-1 cursor-pointer"
+                    className="w-full accent-spot bg-rule  h-1 cursor-pointer"
                   />
                 </div>
 
@@ -325,7 +325,7 @@ export const Woodcoder3DModal: React.FC<Woodcoder3DModalProps> = ({ isOpen, onCl
                 <div>
                   <div className="flex justify-between text-ink-soft mb-1">
                     <span>Height (Y-Axis):</span>
-                    <span className="text-[#C1440E]">{height.toFixed(1)}m</span>
+                    <span className="text-spot">{height.toFixed(1)}m</span>
                   </div>
                   <input
                     type="range"
@@ -334,7 +334,7 @@ export const Woodcoder3DModal: React.FC<Woodcoder3DModalProps> = ({ isOpen, onCl
                     step="0.1"
                     value={height}
                     onChange={(e) => setHeight(parseFloat(e.target.value))}
-                    className="w-full accent-[#C1440E] bg-rule  h-1 cursor-pointer"
+                    className="w-full accent-spot bg-rule  h-1 cursor-pointer"
                   />
                 </div>
 
@@ -342,7 +342,7 @@ export const Woodcoder3DModal: React.FC<Woodcoder3DModalProps> = ({ isOpen, onCl
                 <div>
                   <div className="flex justify-between text-ink-soft mb-1">
                     <span>Depth (Z-Axis):</span>
-                    <span className="text-[#C1440E]">{depth.toFixed(1)}m</span>
+                    <span className="text-spot">{depth.toFixed(1)}m</span>
                   </div>
                   <input
                     type="range"
@@ -351,7 +351,7 @@ export const Woodcoder3DModal: React.FC<Woodcoder3DModalProps> = ({ isOpen, onCl
                     step="0.1"
                     value={depth}
                     onChange={(e) => setDepth(parseFloat(e.target.value))}
-                    className="w-full accent-[#C1440E] bg-rule  h-1 cursor-pointer"
+                    className="w-full accent-spot bg-rule  h-1 cursor-pointer"
                   />
                 </div>
 
@@ -359,7 +359,7 @@ export const Woodcoder3DModal: React.FC<Woodcoder3DModalProps> = ({ isOpen, onCl
                 <div>
                   <div className="flex justify-between text-ink-soft mb-1">
                     <span>Horizontal Shelves:</span>
-                    <span className="text-[#C1440E]">{shelves} tiers</span>
+                    <span className="text-spot">{shelves} tiers</span>
                   </div>
                   <input
                     type="range"
@@ -368,7 +368,7 @@ export const Woodcoder3DModal: React.FC<Woodcoder3DModalProps> = ({ isOpen, onCl
                     step="1"
                     value={shelves}
                     onChange={(e) => setShelves(parseInt(e.target.value))}
-                    className="w-full accent-[#C1440E] bg-rule  h-1 cursor-pointer"
+                    className="w-full accent-spot bg-rule  h-1 cursor-pointer"
                   />
                 </div>
 
@@ -376,7 +376,7 @@ export const Woodcoder3DModal: React.FC<Woodcoder3DModalProps> = ({ isOpen, onCl
                 <div>
                   <div className="flex justify-between text-ink-soft mb-1">
                     <span>Vertical Columns:</span>
-                    <span className="text-[#C1440E]">{dividers} columns</span>
+                    <span className="text-spot">{dividers} columns</span>
                   </div>
                   <input
                     type="range"
@@ -385,7 +385,7 @@ export const Woodcoder3DModal: React.FC<Woodcoder3DModalProps> = ({ isOpen, onCl
                     step="1"
                     value={dividers}
                     onChange={(e) => setDividers(parseInt(e.target.value))}
-                    className="w-full accent-[#C1440E] bg-rule  h-1 cursor-pointer"
+                    className="w-full accent-spot bg-rule  h-1 cursor-pointer"
                   />
                 </div>
               </div>
@@ -400,7 +400,7 @@ export const Woodcoder3DModal: React.FC<Woodcoder3DModalProps> = ({ isOpen, onCl
                     onClick={() => setMaterialType('cyber')}
                     className={`py-2 px-2 text-[10px] uppercase tracking-wider text-center border transition-colors cursor-pointer ${
                       materialType === 'cyber'
-                        ? 'border-[#C1440E] bg-[#C1440E]/10 text-[#C1440E]'
+                        ? 'border-spot bg-spot/10 text-spot'
                         : 'border-rule text-ink-faint hover:text-ink'
                     }`}
                   >
@@ -410,7 +410,7 @@ export const Woodcoder3DModal: React.FC<Woodcoder3DModalProps> = ({ isOpen, onCl
                     onClick={() => setMaterialType('wood')}
                     className={`py-2 px-2 text-[10px] uppercase tracking-wider text-center border transition-colors cursor-pointer ${
                       materialType === 'wood'
-                        ? 'border-[#C1440E] bg-[#C1440E]/10 text-[#C1440E]'
+                        ? 'border-spot bg-spot/10 text-spot'
                         : 'border-rule text-ink-faint hover:text-ink'
                     }`}
                   >
@@ -420,7 +420,7 @@ export const Woodcoder3DModal: React.FC<Woodcoder3DModalProps> = ({ isOpen, onCl
                     onClick={() => setMaterialType('gold')}
                     className={`py-2 px-2 text-[10px] uppercase tracking-wider text-center border transition-colors cursor-pointer ${
                       materialType === 'gold'
-                        ? 'border-[#C1440E] bg-[#C1440E]/10 text-[#C1440E]'
+                        ? 'border-spot bg-spot/10 text-spot'
                         : 'border-rule text-ink-faint hover:text-ink'
                     }`}
                   >
@@ -434,7 +434,7 @@ export const Woodcoder3DModal: React.FC<Woodcoder3DModalProps> = ({ isOpen, onCl
                     onClick={() => setIsWireframe(!isWireframe)}
                     className={`text-[10px] px-3 py-1 uppercase tracking-wider border  transition-colors cursor-pointer ${
                       isWireframe
-                        ? 'border-[#C1440E] text-[#C1440E] bg-[#C1440E]/10'
+                        ? 'border-spot text-spot bg-spot/10'
                         : 'border-rule text-ink-faint hover:text-ink'
                     }`}
                   >
@@ -446,13 +446,13 @@ export const Woodcoder3DModal: React.FC<Woodcoder3DModalProps> = ({ isOpen, onCl
           </div>
 
           {/* Footer */}
-          <div className="px-6 py-4 bg-[#E9E6DF] border-t border-rule flex items-center justify-between">
+          <div className="px-6 py-4 bg-paper-dim border-t border-rule flex items-center justify-between">
             <span className="text-[10px] text-ink-faint">
               GPU PARAMETRIC ENGINE // REAL-TIME GEOMETRY COMPILATION
             </span>
             <button
               onClick={onClose}
-              className="text-xs uppercase tracking-wider text-ink hover:text-[#C1440E] px-4 py-2 border border-rule hover:border-[#C1440E] transition-colors cursor-pointer"
+              className="text-xs uppercase tracking-wider text-ink hover:text-spot px-4 py-2 border border-rule hover:border-spot transition-colors cursor-pointer"
             >
               Close
             </button>
