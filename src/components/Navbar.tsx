@@ -3,6 +3,7 @@ import { Volume2, VolumeX, Sun, Moon } from 'lucide-react';
 import { gsap, ScrollTrigger, useGSAP } from '../lib/gsap';
 import { useSmoothScroll } from '../providers/SmoothScrollProvider';
 import { useTheme } from '../hooks/useTheme';
+import { EncryptedText } from './motion/EncryptedText';
 
 interface NavbarProps {
   onOpenMenu: () => void;
@@ -107,7 +108,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             className="text-ink-soft hover:text-spot text-xs uppercase tracking-[0.25em] transition-colors duration-500 link-underline"
             data-cursor="active"
           >
-            {label}
+            <EncryptedText text={label} />
           </button>
         ))}
       </nav>

@@ -3,6 +3,7 @@ import { ArrowUp } from 'lucide-react';
 import { gsap, useGSAP } from '../lib/gsap';
 import { useSmoothScroll } from '../providers/SmoothScrollProvider';
 import { useReducedMotion } from '../hooks/useReducedMotion';
+import { EncryptedText } from './motion/EncryptedText';
 
 const SOCIALS = [
   { label: 'GitHub', href: 'https://github.com/iman-mohamadi' },
@@ -55,7 +56,7 @@ export const Footer: React.FC = () => {
                 className="text-[11px] text-ink-faint hover:text-spot transition-colors duration-500 uppercase tracking-widest link-underline"
                 data-cursor="active"
               >
-                {label}
+                <EncryptedText text={label} />
               </a>
             ))}
 

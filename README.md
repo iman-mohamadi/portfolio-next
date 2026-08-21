@@ -95,6 +95,22 @@ Two constraints worth knowing before editing this scene:
    `useStableViewport`, which computes extent from canvas size and a fixed rest
    distance.
 
+### Audio
+
+Sampled, not synthesised: a looping ambient bed plus interface sounds in
+`public/audio`. Buffers are fetched and decoded on the first *enable*, so
+nothing is downloaded for visitors who never turn sound on, and the
+AudioContext is created on that same gesture because browsers refuse to start
+one otherwise.
+
+The source WAVs were 24-bit/96 kHz masters (1.5 MB). They are downconverted to
+16-bit/48 kHz mono — inaudible difference on sub-second interface sounds, ~17%
+of the size.
+
+Hover sound is emitted from one global listener in `useUiSounds`, never from
+individual components; attaching it in both places double-triggers on any
+control that has its own hover behaviour.
+
 ### Bundle
 
 Three.js is lazy and not in the entry chunk. Case-study modals and the system

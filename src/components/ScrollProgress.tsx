@@ -1,6 +1,7 @@
 import React, { useRef, useState } from 'react';
 import { gsap, ScrollTrigger, useGSAP } from '../lib/gsap';
 import { useSmoothScroll } from '../providers/SmoothScrollProvider';
+import { EncryptedText } from './motion/EncryptedText';
 
 const SECTIONS = [
   { id: 'hero', label: 'Index' },
@@ -78,7 +79,7 @@ export const ScrollProgress: React.FC = () => {
                     isActive ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-2'
                   }`}
                 >
-                  {label}
+                  <EncryptedText text={label} />
                 </span>
                 <span
                   className={`h-px transition-all duration-500 ${

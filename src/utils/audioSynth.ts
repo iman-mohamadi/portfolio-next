@@ -1,26 +1,45 @@
 /**
- * Web Audio engine: an ambient pad plus short interface SFX.
+ * Web Audio engine: a looping ambient bed plus sampled interface sounds.
  *
- * Everything is synthesised — no audio files, nothing to download. A single
- * AudioContext is created lazily on the first user gesture (browsers refuse to
- * start one otherwise) and reused for the life of the page.
+ * Samples rather than oscillators. Buffers are fetched lazily on the first
+ * enable — nothing is downloaded for visitors who never turn sound on — and a
+ * single AudioContext is created on that same user gesture, since browsers
+ * refuse to start one otherwise.
  */
 
-type Sfx = 'hover' | 'click' | 'open' | 'close' | 'success' | 'toggle';
+export type Sfx = 'hover' | 'secondaryHover' | 'click' | 'open' | 'close' | 'success' | 'toggle';
+
+const SOURCES: Record<string, string> = {
+  ambient: '/audio/ambient-loop.mp3',
+  hover: '/audio/hover.wav',
+  secondaryHover: '/audio/secondary-hover.wav',
+  click: '/audio/click.wav',
+  open: '/audio/modal-open.wav',
+};
+
+/** Per-sound level and playback rate. Keeps the mix in one place. */
+const VOICES: Record<Sfx, { key: string; gain: number; rate?: number }> = {
+  hover: { key: 'hover', gain: 0.35 },
+  secondaryHover: { key: 'secondaryHover', gain: 0.3 },
+  click: { key: 'click', gain: 0.55 },
+  open: { key: 'open', gain: 0.5 },
+  // Reuse the open sample, pitched down, so closing is recognisably its inverse.
+  close: { key: 'open', gain: 0.32, rate: 0.82 },
+  success: { key: 'open', gain: 0.5, rate: 1.12 },
+  toggle: { key: 'click', gain: 0.4, rate: 1.15 },
+};
+
+const MASTER_LEVEL = 0.7;
+const AMBIENT_LEVEL = 0.22;
 
 let ctx: AudioContext | null = null;
 let master: GainNode | null = null;
-let padGain: GainNode | null = null;
-let padNodes: (OscillatorNode | LFO)[] = [];
+let ambientGain: GainNode | null = null;
+let ambientSource: AudioBufferSourceNode | null = null;
 let enabled = false;
 
-interface LFO {
-  stop: () => void;
-  disconnect: () => void;
-}
-
-const MASTER_LEVEL = 0.34;
-const PAD_LEVEL = 0.14;
+const buffers = new Map<string, AudioBuffer>();
+let loadPromise: Promise<void> | null = null;
 
 function ensureContext(): AudioContext | null {
   if (ctx) return ctx;
@@ -34,9 +53,9 @@ function ensureContext(): AudioContext | null {
   master = ctx.createGain();
   master.gain.value = MASTER_LEVEL;
 
-  // Gentle ceiling so stacked SFX and the pad can never clip.
+  // Ceiling so stacked hovers and the bed can never clip.
   const limiter = ctx.createDynamicsCompressor();
-  limiter.threshold.value = -12;
+  limiter.threshold.value = -10;
   limiter.knee.value = 12;
   limiter.ratio.value = 12;
   limiter.attack.value = 0.003;
@@ -44,101 +63,66 @@ function ensureContext(): AudioContext | null {
 
   master.connect(limiter);
   limiter.connect(ctx.destination);
-
   return ctx;
 }
 
-/**
- * Ambient pad. Voiced in the low-mids rather than sub-bass — the previous
- * version sat at 55 Hz behind a 220 Hz lowpass, which is inaudible on laptop
- * speakers and read as "the button does nothing".
- */
-function startPad() {
-  if (!ctx || !master || padGain) return;
+/** Fetch and decode every sample once. Failures are per-sound, never fatal. */
+function loadBuffers(audio: AudioContext): Promise<void> {
+  if (loadPromise) return loadPromise;
 
-  padGain = ctx.createGain();
-  padGain.gain.setValueAtTime(0.0001, ctx.currentTime);
-  padGain.gain.exponentialRampToValueAtTime(PAD_LEVEL, ctx.currentTime + 3.5);
+  loadPromise = Promise.all(
+    Object.entries(SOURCES).map(async ([key, url]) => {
+      try {
+        const res = await fetch(url);
+        if (!res.ok) return;
+        buffers.set(key, await audio.decodeAudioData(await res.arrayBuffer()));
+      } catch {
+        // A missing or undecodable sample simply goes silent.
+      }
+    })
+  ).then(() => undefined);
 
-  const filter = ctx.createBiquadFilter();
-  filter.type = 'lowpass';
-  filter.frequency.value = 900;
-  filter.Q.value = 0.8;
-  filter.connect(padGain);
-  padGain.connect(master);
-
-  // Slow filter sweep so the pad breathes instead of sitting static.
-  const sweep = ctx.createOscillator();
-  const sweepDepth = ctx.createGain();
-  sweep.frequency.value = 0.05;
-  sweepDepth.gain.value = 320;
-  sweep.connect(sweepDepth);
-  sweepDepth.connect(filter.frequency);
-  sweep.start();
-  padNodes.push(sweep);
-
-  // E minor add9, spread across two octaves.
-  const voices = [
-    { freq: 82.41, type: 'sine' as const, gain: 0.9 }, // E2
-    { freq: 164.81, type: 'triangle' as const, gain: 0.5 }, // E3
-    { freq: 196.0, type: 'triangle' as const, gain: 0.34 }, // G3
-    { freq: 246.94, type: 'sine' as const, gain: 0.3 }, // B3
-    { freq: 369.99, type: 'sine' as const, gain: 0.16 }, // F#4 (the 9th)
-  ];
-
-  voices.forEach(({ freq, type, gain }, i) => {
-    if (!ctx) return;
-
-    const osc = ctx.createOscillator();
-    osc.type = type;
-    // A few cents of detune per voice keeps the chord from sounding synthetic.
-    osc.frequency.value = freq;
-    osc.detune.value = (i - 2) * 4;
-
-    const voiceGain = ctx.createGain();
-    voiceGain.gain.value = gain;
-
-    // Independent slow tremolo per voice → the pad never loops audibly.
-    const trem = ctx.createOscillator();
-    const tremDepth = ctx.createGain();
-    trem.frequency.value = 0.07 + i * 0.023;
-    tremDepth.gain.value = gain * 0.32;
-    trem.connect(tremDepth);
-    tremDepth.connect(voiceGain.gain);
-    trem.start();
-
-    osc.connect(voiceGain);
-    voiceGain.connect(filter);
-    osc.start();
-
-    padNodes.push(osc, trem);
-  });
+  return loadPromise;
 }
 
-function stopPad() {
-  if (!ctx || !padGain) return;
+function startAmbient() {
+  if (!ctx || !master || ambientSource) return;
+  const buffer = buffers.get('ambient');
+  if (!buffer) return;
+
+  ambientGain = ctx.createGain();
+  ambientGain.gain.setValueAtTime(0.0001, ctx.currentTime);
+  ambientGain.gain.exponentialRampToValueAtTime(AMBIENT_LEVEL, ctx.currentTime + 3);
+  ambientGain.connect(master);
+
+  ambientSource = ctx.createBufferSource();
+  ambientSource.buffer = buffer;
+  ambientSource.loop = true;
+  ambientSource.connect(ambientGain);
+  ambientSource.start();
+}
+
+function stopAmbient() {
+  if (!ctx || !ambientGain || !ambientSource) return;
 
   const now = ctx.currentTime;
-  const gainNode = padGain;
-  const nodes = padNodes;
+  const gain = ambientGain;
+  const source = ambientSource;
+  ambientGain = null;
+  ambientSource = null;
 
-  padGain = null;
-  padNodes = [];
-
-  gainNode.gain.cancelScheduledValues(now);
-  gainNode.gain.setValueAtTime(Math.max(gainNode.gain.value, 0.0001), now);
-  gainNode.gain.exponentialRampToValueAtTime(0.0001, now + 1.2);
+  gain.gain.cancelScheduledValues(now);
+  gain.gain.setValueAtTime(Math.max(gain.gain.value, 0.0001), now);
+  gain.gain.exponentialRampToValueAtTime(0.0001, now + 1.2);
 
   window.setTimeout(() => {
-    nodes.forEach((node) => {
-      try {
-        node.stop();
-        node.disconnect();
-      } catch {
-        // Already stopped — nothing to do.
-      }
-    });
-    gainNode.disconnect();
+    try {
+      source.stop();
+      source.disconnect();
+    } catch {
+      // Already stopped.
+    }
+    gain.disconnect();
   }, 1400);
 }
 
@@ -147,7 +131,7 @@ export function setAudioEnabled(on: boolean) {
   enabled = on;
 
   if (!on) {
-    stopPad();
+    stopAmbient();
     return;
   }
 
@@ -155,8 +139,12 @@ export function setAudioEnabled(on: boolean) {
   if (!audio) return;
   if (audio.state === 'suspended') void audio.resume();
 
-  startPad();
-  playSfx('toggle');
+  void loadBuffers(audio).then(() => {
+    // The visitor may have toggled off again while the samples were in flight.
+    if (!enabled) return;
+    startAmbient();
+    playSfx('toggle');
+  });
 }
 
 export function isAudioEnabled() {
@@ -165,72 +153,35 @@ export function isAudioEnabled() {
 
 let lastHover = 0;
 
-/** Fire a short interface sound. No-ops entirely when audio is off. */
+/** Fire an interface sound. No-ops entirely when audio is off. */
 export function playSfx(name: Sfx) {
   if (!enabled || !ctx || !master) return;
 
   // Hover fires from a global listener; without a floor it machine-guns.
-  if (name === 'hover') {
+  if (name === 'hover' || name === 'secondaryHover') {
     const now = performance.now();
     if (now - lastHover < 70) return;
     lastHover = now;
   }
 
-  const t = ctx.currentTime;
-  const out = ctx.createGain();
-  out.connect(master);
+  const voice = VOICES[name];
+  const buffer = buffers.get(voice.key);
+  if (!buffer) return;
 
-  const tone = (
-    type: OscillatorType,
-    from: number,
-    to: number,
-    duration: number,
-    level: number,
-    startAt = 0
-  ) => {
-    if (!ctx) return;
-    const osc = ctx.createOscillator();
-    const gain = ctx.createGain();
-    osc.type = type;
-    osc.frequency.setValueAtTime(from, t + startAt);
-    osc.frequency.exponentialRampToValueAtTime(Math.max(to, 1), t + startAt + duration);
+  const source = ctx.createBufferSource();
+  source.buffer = buffer;
+  if (voice.rate) source.playbackRate.value = voice.rate;
 
-    gain.gain.setValueAtTime(0.0001, t + startAt);
-    gain.gain.exponentialRampToValueAtTime(level, t + startAt + 0.008);
-    gain.gain.exponentialRampToValueAtTime(0.0001, t + startAt + duration);
+  const gain = ctx.createGain();
+  gain.gain.value = voice.gain;
 
-    osc.connect(gain);
-    gain.connect(out);
-    osc.start(t + startAt);
-    osc.stop(t + startAt + duration + 0.05);
+  source.connect(gain);
+  gain.connect(master);
+  source.start();
+  source.onended = () => {
+    source.disconnect();
+    gain.disconnect();
   };
-
-  switch (name) {
-    case 'hover':
-      tone('sine', 2100, 2600, 0.05, 0.05);
-      break;
-    case 'click':
-      tone('triangle', 620, 240, 0.11, 0.16);
-      tone('sine', 1400, 900, 0.06, 0.06);
-      break;
-    case 'open':
-      tone('sawtooth', 180, 720, 0.28, 0.07);
-      tone('sine', 440, 880, 0.3, 0.05);
-      break;
-    case 'close':
-      tone('sawtooth', 620, 170, 0.24, 0.06);
-      break;
-    case 'toggle':
-      tone('sine', 520, 780, 0.16, 0.12);
-      break;
-    case 'success':
-      // Rising E-major triad.
-      [659.25, 830.61, 987.77].forEach((f, i) => tone('sine', f, f, 0.42, 0.11, i * 0.09));
-      break;
-  }
-
-  // Release the per-SFX bus once the tail has decayed.
-  window.setTimeout(() => out.disconnect(), 1200);
 }
 
 /** @deprecated Kept for compatibility — prefer setAudioEnabled. */
