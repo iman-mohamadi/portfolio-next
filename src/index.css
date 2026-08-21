@@ -449,9 +449,14 @@
   a[data-cursor],
   button[data-cursor],
   .skip-link {
+    /* Size only — never `display`. An earlier version also forced
+       `display: inline-flex`, which silently destroyed every block-level
+       control: the button wrapping each work image became a centred flex
+       container, its aspect-ratio child collapsed to zero height, and all
+       three case-study images vanished on phones. Do not override display
+       from a broad attribute selector. */
     min-height: 44px;
-    display: inline-flex;
-    align-items: center;
+    min-width: 44px;
   }
 }
 

@@ -242,7 +242,7 @@ export const WorkSection: React.FC = () => {
                       <Magnetic strength={0.25}>
                         <button
                           onClick={() => open(project.key)}
-                          className="text-[11px] uppercase tracking-[0.2em] text-ink hover:text-spot transition-colors duration-500 flex items-center gap-2 link-underline"
+                          className="text-[11px] uppercase tracking-[0.2em] text-ink hover:text-spot transition-colors duration-500 inline-flex items-center gap-2 whitespace-nowrap link-underline"
                           data-cursor="active"
                         >
                           {project.cta}

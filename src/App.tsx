@@ -13,6 +13,7 @@ import { ContactSection } from './components/ContactSection';
 import { Footer } from './components/Footer';
 import { setAudioEnabled } from './utils/audioSynth';
 import { useUiSounds } from './hooks/useUiSounds';
+import { useIsPhone } from './hooks/useIsPhone';
 
 // Three.js is the heaviest thing on the page and nothing above the fold needs
 // it to render. Split it out of the entry bundle so first paint isn't waiting
@@ -39,6 +40,7 @@ export default function App() {
     setIsMenuOpen(true);
   }, []);
   const [isAudioActive, setIsAudioActive] = useState(false);
+  const isPhone = useIsPhone();
   const [ready, setReady] = useState(false);
 
   // The side effect must live outside the updater: StrictMode invokes updaters
@@ -77,7 +79,9 @@ export default function App() {
 
       <Preloader onComplete={handleLoaded} />
 
-      <Suspense fallback={null}>{ready && <HeroCanvas />}</Suspense>
+      {/* Phones render the hero in the DOM, so the renderer is never fetched —
+          that is ~190 kB gzip and a continuous GPU load saved on mobile. */}
+      <Suspense fallback={null}>{ready && !isPhone && <HeroCanvas />}</Suspense>
 
       <CustomCursor />
 

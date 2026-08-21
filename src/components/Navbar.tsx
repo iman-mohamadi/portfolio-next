@@ -75,7 +75,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   return (
     <header
       ref={headerRef}
-      className="fixed top-0 left-0 right-0 z-50 border-b border-transparent py-7 px-6 md:px-12 flex items-center justify-between gap-6 will-change-transform"
+      className="fixed top-0 left-0 right-0 z-50 border-b border-transparent py-7 px-6 md:px-12 flex items-center justify-between gap-3 md:gap-6 will-change-transform"
     >
       <div className="flex items-center gap-6">
         <a
@@ -88,7 +88,9 @@ export const Navbar: React.FC<NavbarProps> = ({
           data-cursor="active"
         >
           <span className="font-display text-base sm:text-lg leading-none whitespace-nowrap group-hover:text-spot transition-colors duration-500">
-            Iman Mohammadi
+            {/* Three controls plus the full name overflow a 390px bar. */}
+            <span className="sm:hidden">IM</span>
+            <span className="hidden sm:inline">Iman Mohammadi</span>
           </span>
         </a>
 
@@ -110,7 +112,7 @@ export const Navbar: React.FC<NavbarProps> = ({
         ))}
       </nav>
 
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-2 md:gap-3">
         <button
           onClick={toggleTheme}
           aria-pressed={theme === 'dark'}
@@ -166,14 +168,15 @@ export const Navbar: React.FC<NavbarProps> = ({
           onMouseEnter={onPrefetchMenu}
           onFocus={onPrefetchMenu}
           aria-haspopup="dialog"
-          className="group text-xs uppercase tracking-[0.25em] text-ink hover:text-spot border border-rule hover:border-spot px-4 py-2.5 transition-colors duration-500 flex items-center gap-2.5"
+          className="group text-xs uppercase tracking-[0.25em] text-ink hover:text-spot border border-rule hover:border-spot px-3 sm:px-4 py-2.5 transition-colors duration-500 flex items-center gap-2.5"
           data-cursor="active"
         >
           <span className="flex flex-col gap-[3px]" aria-hidden="true">
             <span className="block w-3.5 h-px bg-current transition-transform duration-500 group-hover:translate-x-0.5" />
             <span className="block w-3.5 h-px bg-current transition-transform duration-500 group-hover:-translate-x-0.5" />
           </span>
-          Menu
+          <span className="hidden sm:inline">Menu</span>
+          <span className="sr-only sm:hidden">Open menu</span>
         </button>
       </div>
     </header>

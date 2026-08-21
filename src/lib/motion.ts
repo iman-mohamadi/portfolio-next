@@ -28,11 +28,25 @@ export const hasWebGL = (): boolean => {
   if (typeof window === 'undefined') return false;
   try {
     const canvas = document.createElement('canvas');
-    return !!(canvas.getContext('webgl2') || canvas.getContext('webgl'));
+    const gl = (canvas.getContext('webgl2') ?? canvas.getContext('webgl')) as
+      | WebGLRenderingContext
+      | null;
+    if (!gl) return false;
+
+    // Release the probe context immediately. Mobile browsers cap the number of
+    // live WebGL contexts (Safari especially, at a handful), and an abandoned
+    // probe counts against that cap — it can be the reason the real hero canvas
+    // then fails to acquire one and renders nothing.
+    gl.getExtension('WEBGL_lose_context')?.loseContext();
+    return true;
   } catch {
     return false;
   }
 };
+
+/** Phone-sized viewport. Matches the `md` breakpoint used across the layout. */
+export const isPhoneViewport = (): boolean =>
+  typeof window !== 'undefined' && window.matchMedia('(max-width: 767px)').matches;
 
 /**
  * Coarse GPU capability tier, used to scale particle counts and postprocessing.

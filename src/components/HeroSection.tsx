@@ -5,6 +5,7 @@ import { Magnetic } from './motion/Magnetic';
 import { useSmoothScroll } from '../providers/SmoothScrollProvider';
 import { useReducedMotion } from '../hooks/useReducedMotion';
 import { hasWebGL } from '../lib/motion';
+import { useIsPhone } from '../hooks/useIsPhone';
 import { HERO_PORTRAIT } from '../content/media';
 
 const STATS = [
@@ -23,10 +24,13 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ ready }) => {
   const { scrollTo } = useSmoothScroll();
   const reduced = useReducedMotion();
 
-  // The wordmark and portrait plate live in the WebGL layer. When that can't
-  // run, the DOM has to carry them or the hero is an empty page.
+  // The wordmark and portrait plate live in the WebGL layer on wide screens.
+  // Phones fall back to real type: the particle wordmark is illegible at that
+  // scale, and if the canvas fails to acquire a context the hero would
+  // otherwise render completely empty.
   const webgl = useMemo(() => hasWebGL(), []);
-  const domHero = !webgl || reduced;
+  const isPhone = useIsPhone();
+  const domHero = !webgl || reduced || isPhone;
 
   useGSAP(
     () => {
@@ -45,19 +49,29 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ ready }) => {
         if (tl.progress() < 1) tl.progress(1);
       }, 5000);
 
-      gsap.to('.hero-parallax', {
-        yPercent: 45,
-        opacity: 0,
-        ease: 'none',
-        scrollTrigger: {
-          trigger: sectionRef.current,
-          start: 'top top',
-          end: 'bottom top',
-          scrub: 0.6,
-        },
+      // Parallax only where the hero has headroom. On a phone the standfirst,
+      // buttons and stats nearly fill the section, so translating them down 45%
+      // pushed them into the section's own `overflow-hidden` and sheared the
+      // stat figures in half at the boundary.
+      const mm = gsap.matchMedia();
+      mm.add('(min-width: 768px)', () => {
+        gsap.to('.hero-parallax', {
+          yPercent: 45,
+          opacity: 0,
+          ease: 'none',
+          scrollTrigger: {
+            trigger: sectionRef.current,
+            start: 'top top',
+            end: 'bottom top',
+            scrub: 0.6,
+          },
+        });
       });
 
-      return () => window.clearTimeout(failsafe);
+      return () => {
+        window.clearTimeout(failsafe);
+        mm.revert();
+      };
     },
     { scope: sectionRef, dependencies: [ready, reduced, domHero] }
   );
