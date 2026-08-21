@@ -3,7 +3,6 @@ import confetti from 'canvas-confetti';
 import { Send, CheckCircle2, ShieldAlert, Cpu, Copy, Check } from 'lucide-react';
 import { ContactFormData } from '../types';
 import { Reveal } from './motion/Reveal';
-import { Magnetic } from './motion/Magnetic';
 import { useReducedMotion } from '../hooks/useReducedMotion';
 import { playSfx } from '../utils/audioSynth';
 import { CONTACT_PORTRAIT } from '../content/media';
@@ -203,30 +202,28 @@ export const ContactSection: React.FC = () => {
                 </div>
 
                 <div className="flex flex-col sm:flex-row gap-4">
-                  <Magnetic strength={0.3}>
-                    <button
-                      type="submit"
-                      disabled={status === 'transmitting'}
-                      className="btn-swap bg-ink text-paper px-9 py-4 label disabled:opacity-50"
-                      data-cursor="active"
-                    >
-                      {status === 'transmitting' ? (
-                        <span className="flex items-center gap-2">
-                          <Cpu className="w-4 h-4 animate-spin" aria-hidden="true" />
-                          Sending…
+                  <button
+                    type="submit"
+                    disabled={status === 'transmitting'}
+                    className="btn-swap bg-ink text-paper px-9 py-4 label disabled:opacity-50"
+                    data-cursor="active"
+                  >
+                    {status === 'transmitting' ? (
+                      <span className="flex items-center gap-2">
+                        <Cpu className="w-4 h-4 animate-spin" aria-hidden="true" />
+                        Sending…
+                      </span>
+                    ) : (
+                      <>
+                        <span className="btn-swap-inner flex items-center gap-2">
+                          Transmit <Send className="w-3.5 h-3.5" />
                         </span>
-                      ) : (
-                        <>
-                          <span className="btn-swap-inner flex items-center gap-2">
-                            Transmit <Send className="w-3.5 h-3.5" />
-                          </span>
-                          <span className="btn-swap-clone bg-spot gap-2" aria-hidden="true">
-                            Transmit <Send className="w-3.5 h-3.5" />
-                          </span>
-                        </>
-                      )}
-                    </button>
-                  </Magnetic>
+                        <span className="btn-swap-clone bg-spot gap-2" aria-hidden="true">
+                          Transmit <Send className="w-3.5 h-3.5" />
+                        </span>
+                      </>
+                    )}
+                  </button>
 
                   <button
                     type="button"

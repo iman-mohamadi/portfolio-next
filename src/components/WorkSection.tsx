@@ -2,7 +2,6 @@ import React, { Suspense, lazy, useCallback, useRef, useState } from 'react';
 import { ArrowUpRight } from 'lucide-react';
 import { gsap, useGSAP } from '../lib/gsap';
 import { Reveal } from './motion/Reveal';
-import { Magnetic } from './motion/Magnetic';
 
 // Case-study modals carry the heaviest dependencies on the page — the Woodcoder
 // one pulls in all of Three.js. Loading them statically put the entire renderer
@@ -239,16 +238,14 @@ export const WorkSection: React.FC = () => {
                     </p>
 
                     <div className="flex items-center justify-between gap-6 border-t border-rule pt-5">
-                      <Magnetic strength={0.25}>
-                        <button
-                          onClick={() => open(project.key)}
-                          className="text-[11px] uppercase tracking-[0.2em] text-ink hover:text-spot transition-colors duration-500 inline-flex items-center gap-2 whitespace-nowrap link-underline"
-                          data-cursor="active"
-                        >
-                          {project.cta}
-                          <ArrowUpRight className="w-3.5 h-3.5" />
-                        </button>
-                      </Magnetic>
+                      <button
+                        onClick={() => open(project.key)}
+                        className="text-[11px] uppercase tracking-[0.2em] text-ink hover:text-spot transition-colors duration-500 inline-flex items-center gap-2 whitespace-nowrap link-underline"
+                        data-cursor="active"
+                      >
+                        {project.cta}
+                        <ArrowUpRight className="w-3.5 h-3.5" />
+                      </button>
                       <span className="label text-ink-faint">{project.stack}</span>
                     </div>
                   </div>

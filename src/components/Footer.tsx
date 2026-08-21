@@ -1,14 +1,13 @@
 import React, { useRef } from 'react';
 import { ArrowUp } from 'lucide-react';
 import { gsap, useGSAP } from '../lib/gsap';
-import { Magnetic } from './motion/Magnetic';
 import { useSmoothScroll } from '../providers/SmoothScrollProvider';
 import { useReducedMotion } from '../hooks/useReducedMotion';
 
 const SOCIALS = [
-  { label: 'Instagram', href: 'https://instagram.com' },
-  { label: 'LinkedIn', href: 'https://linkedin.com' },
-  { label: 'GitHub', href: 'https://github.com' },
+  { label: 'GitHub', href: 'https://github.com/iman-mohamadi' },
+  { label: 'LinkedIn', href: 'https://www.linkedin.com/in/iman-mohammadiii/' },
+  { label: 'Instagram', href: 'https://instagram.com/im_mhmdi' },
 ];
 
 export const Footer: React.FC = () => {
@@ -60,16 +59,14 @@ export const Footer: React.FC = () => {
               </a>
             ))}
 
-            <Magnetic strength={0.35}>
-              <button
-                onClick={() => scrollTo('#hero')}
-                className="w-11 h-11 rounded-full border border-rule hover:border-spot hover:text-spot text-ink flex items-center justify-center transition-colors duration-500"
-                aria-label="Back to top"
-                data-cursor="active"
-              >
-                <ArrowUp className="w-4 h-4" aria-hidden="true" />
-              </button>
-            </Magnetic>
+            <button
+              onClick={() => scrollTo('#hero')}
+              className="w-11 h-11 rounded-full border border-rule hover:border-spot hover:text-spot text-ink flex items-center justify-center transition-colors duration-500"
+              aria-label="Back to top"
+              data-cursor="active"
+            >
+              <ArrowUp className="w-4 h-4" aria-hidden="true" />
+            </button>
           </div>
         </div>
 

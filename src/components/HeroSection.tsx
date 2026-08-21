@@ -1,7 +1,6 @@
 import React, { useMemo, useRef } from 'react';
 import { ArrowDown, ArrowUpRight } from 'lucide-react';
 import { gsap, useGSAP } from '../lib/gsap';
-import { Magnetic } from './motion/Magnetic';
 import { useSmoothScroll } from '../providers/SmoothScrollProvider';
 import { useReducedMotion } from '../hooks/useReducedMotion';
 import { hasWebGL } from '../lib/motion';
@@ -140,38 +139,34 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ ready }) => {
           </div>
 
           <div className="hero-anim lg:col-span-5 flex flex-wrap items-center gap-3 lg:justify-end">
-            <Magnetic strength={0.3}>
-              <a
-                href="#work"
-                onClick={(e) => {
-                  e.preventDefault();
-                  scrollTo('#work');
-                }}
-                className="btn-swap bg-ink text-paper px-8 py-4 label"
-                data-cursor="active"
-              >
-                <span className="btn-swap-inner flex items-center gap-2">
-                  Selected work <ArrowUpRight className="w-3.5 h-3.5" />
-                </span>
-                <span className="btn-swap-clone bg-spot gap-2" aria-hidden="true">
-                  Selected work <ArrowUpRight className="w-3.5 h-3.5" />
-                </span>
-              </a>
-            </Magnetic>
+            <a
+              href="#work"
+              onClick={(e) => {
+                e.preventDefault();
+                scrollTo('#work');
+              }}
+              className="btn-swap bg-ink text-paper px-8 py-4 label"
+              data-cursor="active"
+            >
+              <span className="btn-swap-inner flex items-center gap-2">
+                Selected work <ArrowUpRight className="w-3.5 h-3.5" />
+              </span>
+              <span className="btn-swap-clone bg-spot gap-2" aria-hidden="true">
+                Selected work <ArrowUpRight className="w-3.5 h-3.5" />
+              </span>
+            </a>
 
-            <Magnetic strength={0.3}>
-              <a
-                href="#contact"
-                onClick={(e) => {
-                  e.preventDefault();
-                  scrollTo('#contact');
-                }}
-                className="border border-ink text-ink hover:bg-ink hover:text-paper px-8 py-4 label transition-colors duration-500"
-                data-cursor="active"
-              >
-                Start a project
-              </a>
-            </Magnetic>
+            <a
+              href="#contact"
+              onClick={(e) => {
+                e.preventDefault();
+                scrollTo('#contact');
+              }}
+              className="border border-ink text-ink hover:bg-ink hover:text-paper px-8 py-4 label transition-colors duration-500"
+              data-cursor="active"
+            >
+              Start a project
+            </a>
           </div>
         </div>
 
