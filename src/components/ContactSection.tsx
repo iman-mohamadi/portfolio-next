@@ -82,18 +82,21 @@ export const ContactSection: React.FC = () => {
       aria-label="Contact"
       className="bleed-spot relative z-20 overflow-hidden pt-24 md:pt-36 pb-16 md:pb-20 px-6 md:px-10"
     >
-      {/* Portrait blended into the orange rather than framed on it. The source
-          is lit against near-black, so `screen` maps that background straight
-          back to the orange — no plate edge — and lifts only the subject. */}
+      {/* Portrait dissolved into the ground rather than framed on it.
+          Deliberately a mask and not a blend mode: the ground is painted by
+          the fixed ScrollBackdrop layer, and this section opens its own
+          stacking context, so `mix-blend-screen` had nothing to blend against
+          and the plate re-appeared as a hard-edged rectangle. A mask needs no
+          backdrop and works on whatever colour is behind it. */}
       <div
-        className="contact-portrait pointer-events-none absolute right-0 bottom-0 w-[62%] sm:w-[46%] lg:w-[34%] max-w-[560px] opacity-70 mix-blend-screen"
+        className="contact-portrait pointer-events-none absolute right-0 bottom-0 w-[62%] sm:w-[46%] lg:w-[34%] max-w-[560px] opacity-45"
         aria-hidden="true"
       >
         <img
           src={CONTACT_PORTRAIT}
           alt=""
           loading="lazy"
-          className="w-full h-auto object-contain grayscale contrast-[1.45] brightness-[0.85]"
+          className="portrait-fade w-full h-auto object-contain grayscale contrast-[1.35]"
         />
       </div>
 

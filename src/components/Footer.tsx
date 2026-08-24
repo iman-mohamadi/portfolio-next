@@ -3,11 +3,14 @@ import { gsap, useGSAP } from '../lib/gsap';
 import { useSmoothScroll } from '../providers/SmoothScrollProvider';
 import { useReducedMotion } from '../hooks/useReducedMotion';
 import { EncryptedText } from './motion/EncryptedText';
+import { PixelRunner } from './tools/PixelRunner';
+import { useIsPhone } from '../hooks/useIsPhone';
 
 export const Footer: React.FC = () => {
   const footerRef = useRef<HTMLElement>(null);
   const { scrollTo } = useSmoothScroll();
   const reduced = useReducedMotion();
+  const isPhone = useIsPhone();
 
   useGSAP(
     () => {
@@ -39,15 +42,23 @@ export const Footer: React.FC = () => {
         </button>
       </div>
 
-      {/* Oversized wordmark, set to fill the page width. At this extended
-          width the face runs ~0.6em per character, so the fourteen characters
-          of the full name land near 8.4vw. */}
+      {/* Oversized wordmark with the sprite parked against it, clipped by the
+          page edge. Slashed and shortened to the surname so it can be set
+          large enough to fill the width alongside the runner. */}
       <div className="split-line-mask px-2">
         <div
-          className="footer-wordmark display text-ink text-[8.4vw] whitespace-nowrap select-none pointer-events-none translate-y-[0.14em]"
+          className="footer-wordmark flex items-end gap-[2vw] text-ink select-none pointer-events-none translate-y-[0.14em]"
           aria-hidden="true"
         >
-          Iman Mohammadi
+          {/* The sprite is sized in absolute pixels, so at a fixed scale it
+              eats an eighth of a phone's width and towers over the wordmark's
+              cap height. Step it down with the type. */}
+          <PixelRunner scale={isPhone ? 3 : 5} className="mb-[2.2vw] shrink-0" />
+          {/* Sized so the eleven glyphs clear the runner and the gutter — at
+              12.5vw the trailing letter fell off the right edge. */}
+          <span className="display text-[10.2vw] leading-[0.78] whitespace-nowrap">
+            /Mohammadi
+          </span>
         </div>
       </div>
     </footer>

@@ -72,11 +72,39 @@ export const AboutSection: React.FC = () => {
         scrollTrigger: { trigger: '.about-rows', start: 'top 82%', once: true },
       });
 
-      // The collage plates drift at different rates, so the cluster gains depth
-      // instead of sliding as one flat card.
+      // Each plate is revealed by its cover sliding off rather than by fading
+      // in — the same wipe language as the section transitions, so the collage
+      // reads as part of the same system. Staggered, so the cluster assembles
+      // piece by piece instead of appearing at once.
+      // fromTo rather than from: the resting state is set by a Tailwind
+      // transform utility, and leaving GSAP to infer the end value means
+      // trusting it to parse that matrix back into a scale. If it ever read
+      // it wrong the cover would stay down and hide the plate for good.
+      gsap.fromTo(
+        '.about-plate-cover',
+        { scaleY: 1 },
+        {
+          scaleY: 0,
+          duration: 0.9,
+          ease: 'arch',
+          stagger: 0.13,
+          scrollTrigger: { trigger: '.about-collage', start: 'top 82%', once: true },
+        }
+      );
+
+      gsap.from('.about-plate', {
+        y: 34,
+        duration: 1,
+        ease: 'arch',
+        stagger: 0.13,
+        scrollTrigger: { trigger: '.about-collage', start: 'top 82%', once: true },
+      });
+
+      // Drift afterwards, at different rates, so the settled cluster still has
+      // depth as the section travels.
       gsap.utils.toArray<HTMLElement>('.about-plate').forEach((plate, i) => {
         gsap.to(plate, {
-          yPercent: -8 - i * 5,
+          yPercent: -6 - i * 4,
           ease: 'none',
           scrollTrigger: {
             trigger: sectionRef.current,
@@ -153,17 +181,24 @@ export const AboutSection: React.FC = () => {
         </div>
 
         {/* Collage */}
-        <div className="lg:col-span-5 lg:order-1 grid grid-cols-12 gap-3 md:gap-4">
+        <div className="about-collage lg:col-span-5 lg:order-1 grid grid-cols-12 gap-3 md:gap-4">
           {COLLAGE.map((plate) => (
             <div
               key={plate.src}
-              className={`about-plate overflow-hidden bg-[#0a0a0a]/10 ${plate.className}`}
+              className={`about-plate relative overflow-hidden bg-[#0a0a0a]/10 ${plate.className}`}
             >
               <img
                 src={plate.src}
                 alt={plate.alt}
                 loading="lazy"
                 className="w-full h-full object-cover grayscale contrast-[1.1] brightness-[1.35]"
+              />
+              {/* Cover in the ground colour, scaled away from the bottom on
+                  entry. Painted rather than a clip-path so it matches the
+                  orange exactly while it is still covering the plate. */}
+              <div
+                className="about-plate-cover absolute inset-0 origin-bottom bg-spot scale-y-0"
+                aria-hidden="true"
               />
             </div>
           ))}

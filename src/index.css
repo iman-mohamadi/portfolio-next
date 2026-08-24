@@ -353,6 +353,28 @@
   color: var(--color-spot);
 }
 
+/* Softens a portrait into whatever ground is behind it, with no dependence on
+   a blend mode reaching a backdrop in another stacking context. The subject is
+   toward the upper right of the frame, so the falloff is centred there. */
+/* Every edge has to sit past the transparent stop or the plate's corner
+   survives as a hard line. With the centre at 55%/45%, the furthest edge is
+   55% away, so the gradient radius must stay under ~62% for that edge to
+   reach zero — a wider gradient left the left edge around half-opaque. */
+.portrait-fade {
+  -webkit-mask-image: radial-gradient(
+    62% 62% at 55% 45%,
+    #000 20%,
+    rgba(0, 0, 0, 0.5) 50%,
+    transparent 74%
+  );
+  mask-image: radial-gradient(
+    62% 62% at 55% 45%,
+    #000 20%,
+    rgba(0, 0, 0, 0.5) 50%,
+    transparent 74%
+  );
+}
+
 /* ============================================================================
    TOOLS STUDIES
    ============================================================================ */

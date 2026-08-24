@@ -1,85 +1,9 @@
 import React, { useEffect, useRef } from 'react';
 import { useReducedMotion } from '../../hooks/useReducedMotion';
-
-/**
- * Four-frame run cycle, authored as bitmaps so the shapes are legible in the
- * source. `#` is a filled pixel. Frames alternate contact / passing on each
- * leg, which is the minimum that reads as running rather than sliding.
- */
-const FRAMES: string[][] = [
-  [
-    '....####....',
-    '....####....',
-    '....####....',
-    '.....##.....',
-    '..#######...',
-    '.########...',
-    '##..#####...',
-    '....#####...',
-    '....####....',
-    '...###.##...',
-    '..###...##..',
-    '.###.....##.',
-    '###.......##',
-    '##.........#',
-  ],
-  [
-    '....####....',
-    '....####....',
-    '....####....',
-    '.....##.....',
-    '...#####.#..',
-    '..######.##.',
-    '.#######..#.',
-    '...#####....',
-    '...#####....',
-    '...#####....',
-    '...##.###...',
-    '..##...###..',
-    '.###....###.',
-    '###......##.',
-  ],
-  [
-    '....####....',
-    '....####....',
-    '....####....',
-    '.....##.....',
-    '...#######..',
-    '...########.',
-    '...#####..##',
-    '...#####....',
-    '....####....',
-    '...##.###...',
-    '..##...###..',
-    '.##.....###.',
-    '##.......###',
-    '#.........##',
-  ],
-  [
-    '....####....',
-    '....####....',
-    '....####....',
-    '.....##.....',
-    '..#.#####...',
-    '.##.######..',
-    '.#..#######.',
-    '....#####...',
-    '....#####...',
-    '....#####...',
-    '...###.##...',
-    '..###...##..',
-    '.###....###.',
-    '.##......###',
-  ],
-];
-
-const FRAME_W = 12;
-const FRAME_H = 14;
+import { CYCLE_FPS, FRAME_W, drawSprite } from './runnerSprite';
 
 /** Block edge in CSS px. The runner's pixel scale is derived from it. */
 const BLOCK = 22;
-/** Frames of the run cycle per second. */
-const CYCLE_FPS = 10;
 /** Runner travel in blocks per second. */
 const SPEED = 5.2;
 
@@ -157,21 +81,7 @@ export const PixelPath: React.FC<PixelPathProps> = ({ width, className = '' }) =
       // Sit the sprite on the column it is over, clamped to the track.
       const col = Math.max(0, Math.min(cols - 1, Math.floor(runnerX / BLOCK)));
       const groundY = height - heights[col] * BLOCK;
-      const bodyH = FRAME_H * px;
-      const bitmap = FRAMES[frame % FRAMES.length];
-
-      for (let y = 0; y < FRAME_H; y += 1) {
-        const row = bitmap[y];
-        for (let x = 0; x < FRAME_W; x += 1) {
-          if (row[x] !== '#') continue;
-          ctx.fillRect(
-            Math.round(runnerX + x * px),
-            Math.round(groundY - bodyH + y * px),
-            Math.ceil(px),
-            Math.ceil(px)
-          );
-        }
-      }
+      drawSprite(ctx, frame, runnerX, groundY, px);
     };
 
     if (reduced) {
