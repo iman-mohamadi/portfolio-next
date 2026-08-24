@@ -3,12 +3,12 @@ import { SmoothScrollProvider } from './providers/SmoothScrollProvider';
 import { ScrollTrigger } from './lib/gsap';
 import { Preloader } from './components/Preloader';
 import { CustomCursor } from './components/CustomCursor';
-import { ScrollProgress } from './components/ScrollProgress';
+import { RegistrationMarks } from './components/RegistrationMarks';
 import { Navbar } from './components/Navbar';
 import { HeroSection } from './components/HeroSection';
-import { ManifestoSection } from './components/ManifestoSection';
+import { AboutSection } from './components/AboutSection';
 import { WorkSection } from './components/WorkSection';
-import { CapabilitiesSection } from './components/CapabilitiesSection';
+import { ToolsSection } from './components/ToolsSection';
 import { ContactSection } from './components/ContactSection';
 import { Footer } from './components/Footer';
 import { setAudioEnabled } from './utils/audioSynth';
@@ -92,13 +92,13 @@ export default function App() {
         toggleAudio={handleToggleAudio}
       />
 
-      <ScrollProgress />
+      <RegistrationMarks />
 
       <main id="main" className="relative z-10 w-full">
         <HeroSection ready={ready} />
-        <ManifestoSection />
+        <AboutSection />
+        <ToolsSection />
         <WorkSection />
-        <CapabilitiesSection />
         <ContactSection />
       </main>
 
@@ -112,7 +112,6 @@ export default function App() {
 
       {/* Paper stock: one tooth and one edge bleed over the whole page, so the
           WebGL canvas and the DOM read as a single printed surface. */}
-      <div className="page-edge" aria-hidden="true" />
       <div className="paper-grain" aria-hidden="true" />
     </SmoothScrollProvider>
   );

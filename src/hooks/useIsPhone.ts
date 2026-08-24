@@ -4,12 +4,11 @@ import { isPhoneViewport } from '../lib/motion';
 /**
  * Live phone-viewport check.
  *
- * The hero's particle wordmark is deliberately NOT used at this size. The
- * glyphs are sampled at a fixed world width and then scaled down to fit a
- * narrow screen, but `gl_PointSize` does not scale with the group — so the dots
- * stay the same size while the letterforms shrink, and the name collapses into
- * an illegible blob. Phones get real type instead, and skip loading Three.js
- * altogether.
+ * Phones skip the WebGL hero entirely — that is ~190 kB gzip of renderer and a
+ * continuous GPU load saved on the devices least able to afford either. The
+ * hero draws a CSS stand-in for the 3D object instead, so the composition still
+ * holds. Anything that gates on the canvas must read this same hook, or the two
+ * decisions drift and the hero renders empty.
  */
 export function useIsPhone(): boolean {
   const [phone, setPhone] = useState(isPhoneViewport);

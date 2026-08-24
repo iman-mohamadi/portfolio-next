@@ -2,31 +2,32 @@
 @import "lenis/dist/lenis.css";
 
 /* ============================================================================
-   DESIGN TOKENS — "EDITORIAL NOIR"
-   A printed page, not a screen: warm paper ground, near-black ink, hairline
-   rules. The palette is monochrome by intent; a single burnt-vermilion spot
-   carries every live/state signal, the way a second plate does in print. Keep
-   its coverage under a few percent or it stops reading as an accent.
+   DESIGN TOKENS
+   Warm light grey ground, near-black ink, one saturated orange used at full
+   bleed rather than as a trim. Type is a single variable grotesk pushed to its
+   width and weight extremes for display, with a mono for every micro-label.
    ============================================================================ */
 @theme {
-  --color-paper: #f2f0eb;
-  --color-paper-dim: #e9e6df;
-  --color-paper-deep: #ddd8ce;
-  --color-ink: #14110f;
-  --color-ink-soft: #4a4540;
-  --color-ink-faint: #8c857d;
-  --color-rule: #d3cdc2;
-  --color-spot: #c1440e;
+  --color-paper: #e9e8e4;
+  --color-paper-dim: #dfdeda;
+  --color-paper-deep: #d4d3ce;
+  --color-ink: #0a0a0a;
+  --color-ink-soft: #3a3a38;
+  --color-ink-faint: #77766f;
+  --color-rule: #c3c2bc;
+  --color-spot: #ff5a1e;
+  --color-on-spot: #0a0a0a;
 
-  --font-display: "Playfair Display", ui-serif, Georgia, serif;
-  --font-body: "Public Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Archivo", ui-sans-serif, system-ui, sans-serif;
+  --font-body: "Archivo", ui-sans-serif, system-ui, sans-serif;
+  --font-mono-tech: "JetBrains Mono", ui-monospace, monospace;
 
-  /* Editorial scale: a wide gap between display and text sizes is what makes a
-     page read as typeset rather than as a stack of components. */
-  --text-display-xl: clamp(3.5rem, 13vw, 12rem);
-  --text-display-lg: clamp(2.75rem, 8.5vw, 7.5rem);
-  --text-display-md: clamp(1.875rem, 4.5vw, 3.75rem);
-  --text-display-sm: clamp(1.375rem, 2.6vw, 2.125rem);
+  /* Display sizes are deliberately viewport-bound with almost no floor: the
+     hero words are meant to touch both edges of the frame at every width. */
+  --text-display-xl: clamp(3.5rem, 15.5vw, 16rem);
+  --text-display-lg: clamp(2.75rem, 10vw, 9rem);
+  --text-display-md: clamp(1.75rem, 4vw, 3.25rem);
+  --text-display-sm: clamp(1.25rem, 2.2vw, 1.875rem);
 
   --ease-page: cubic-bezier(0.16, 1, 0.3, 1);
   --ease-lift: cubic-bezier(0.22, 1, 0.36, 1);
@@ -34,33 +35,24 @@
 
 /* ============================================================================
    DARK GROUND
-   The token names are roles, not literal materials: `paper` is always the
-   ground and `ink` is always the figure, so every utility in the app flips
-   correctly by redefining the variables here rather than by branching in
-   markup. Tailwind v4 emits utilities as var() references, which is what makes
-   this work with no `dark:` variants anywhere.
-
-   Dark is not the light palette inverted — pure black against near-white is
-   harsher than paper ever is. This is a warm near-black with the ground tinted
-   toward the same brown as the light stock, and the spot lifted so it still
-   reads as vermilion rather than dried blood.
+   Token names are roles: `paper` is always the ground, `ink` always the figure,
+   so the whole site inverts by redefining variables — no `dark:` variants.
    ============================================================================ */
 :root[data-theme='dark'] {
-  --color-paper: #0c0b0a;
-  --color-paper-dim: #14120f;
-  --color-paper-deep: #1e1a16;
-  --color-ink: #ece7df;
-  --color-ink-soft: #a49c93;
-  --color-ink-faint: #6f665e;
-  --color-rule: #2c2721;
-  --color-spot: #e2683c;
+  --color-paper: #0d0d0d;
+  --color-paper-dim: #151513;
+  --color-paper-deep: #1f1f1c;
+  --color-ink: #eceae4;
+  --color-ink-soft: #a3a29b;
+  --color-ink-faint: #6e6d67;
+  --color-rule: #2b2b28;
+  --color-spot: #ff6a30;
 }
 
 @layer base {
   :root {
     color-scheme: light;
   }
-
   :root[data-theme='dark'] {
     color-scheme: dark;
   }
@@ -80,7 +72,6 @@
     text-rendering: optimizeLegibility;
   }
 
-  /* Never removed, only styled — keyboard users get a first-class path. */
   :focus-visible {
     outline: 2px solid var(--color-spot);
     outline-offset: 3px;
@@ -88,8 +79,8 @@
   }
 
   ::selection {
-    background: var(--color-ink);
-    color: var(--color-paper);
+    background: var(--color-spot);
+    color: #0a0a0a;
   }
 
   ::-webkit-scrollbar {
@@ -102,7 +93,7 @@
     background: var(--color-rule);
   }
   ::-webkit-scrollbar-thumb:hover {
-    background: var(--color-ink);
+    background: var(--color-spot);
   }
 
   @media (pointer: fine) {
@@ -115,6 +106,8 @@
 
 /* ============================================================================
    TYPOGRAPHY
+   Archivo carries a real width axis, so display type is set wide and heavy
+   from the same family as the body — no second face needed.
    ============================================================================ */
 .font-display {
   font-family: var(--font-display);
@@ -122,50 +115,74 @@
 .font-body {
   font-family: var(--font-body);
 }
+.font-mono-tech {
+  font-family: var(--font-mono-tech);
+}
+
+.display {
+  font-family: var(--font-display);
+  font-variation-settings: 'wdth' 118, 'wght' 800;
+  text-transform: uppercase;
+  line-height: 0.82;
+  /* Tracking is size-specific: display type reads too loose as it grows. */
+  letter-spacing: -0.025em;
+}
 
 .text-display-xl {
   font-size: var(--text-display-xl);
-  line-height: 0.86;
-  letter-spacing: -0.03em;
+}
+
+/* The edge-to-edge fit only works down to the width the widest hero word
+   ("Engineer") allows at 800 weight / 118 extended — below that the vw clamp
+   overflows and clips against the section edge. */
+@media (max-width: 640px) {
+  .text-display-xl {
+    font-size: clamp(2.5rem, 13.2vw, 3.15rem);
+  }
 }
 .text-display-lg {
   font-size: var(--text-display-lg);
-  line-height: 0.9;
-  letter-spacing: -0.025em;
 }
 .text-display-md {
   font-size: var(--text-display-md);
-  line-height: 1.06;
-  letter-spacing: -0.015em;
+  line-height: 1;
+  letter-spacing: -0.02em;
 }
 
-/* Editorial eyebrow: tracked-out small caps, sans. Replaces the old monospace
-   telemetry label — a serif page has no reason to speak in terminal type. */
-.label {
-  font-family: var(--font-body);
-  font-size: clamp(0.625rem, 0.85vw, 0.75rem);
-  font-weight: 500;
-  letter-spacing: 0.22em;
-  text-transform: uppercase;
-}
-
-/* Section numeral — the printed folio mark. */
-.folio {
+/* Row headings in the capability/manifest lists — normal width, not extended. */
+.row-title {
   font-family: var(--font-display);
-  font-style: italic;
-  font-size: clamp(0.875rem, 1.2vw, 1.125rem);
+  font-variation-settings: 'wdth' 100, 'wght' 500;
+  font-size: clamp(1.5rem, 3.2vw, 2.75rem);
+  letter-spacing: -0.02em;
+  line-height: 1.05;
+}
+
+/* Every micro-label on the site: mono, uppercase, wide tracking. */
+.label {
+  font-family: var(--font-mono-tech);
+  font-size: clamp(0.5625rem, 0.75vw, 0.6875rem);
+  font-weight: 400;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  line-height: 1.5;
+}
+
+/* Bracketed index used down the left edge of list rows: [01] */
+.index-mark {
+  font-family: var(--font-mono-tech);
+  font-size: clamp(0.5625rem, 0.75vw, 0.6875rem);
+  letter-spacing: 0.1em;
   color: var(--color-ink-faint);
 }
 
-/* Magazine drop cap for the lead paragraph of a section. */
-.drop-cap::first-letter {
+/* The oversized ordinal that anchors each study / project. */
+.ordinal {
   font-family: var(--font-display);
-  font-weight: 700;
-  float: left;
-  font-size: 3.6em;
-  line-height: 0.82;
-  padding-right: 0.08em;
-  margin-top: 0.04em;
+  font-variation-settings: 'wdth' 112, 'wght' 700;
+  font-size: clamp(2.5rem, 6vw, 5.5rem);
+  line-height: 0.8;
+  letter-spacing: -0.03em;
 }
 
 .text-balance-tight {
@@ -178,9 +195,8 @@
 .split-line-mask {
   overflow: hidden;
   display: block;
-  /* Descenders get clipped by a tight mask — pad and pull back. */
-  padding-bottom: 0.14em;
-  margin-bottom: -0.14em;
+  padding-bottom: 0.12em;
+  margin-bottom: -0.12em;
 }
 
 .reveal-pending {
@@ -188,36 +204,55 @@
 }
 
 /* ============================================================================
-   SURFACES & RULES
-   Print has no glass. Structure comes from hairlines and paper tints.
+   REGISTRATION MARKS & RULES
+   Crosshairs at the frame corners and edge midpoints — a print register mark,
+   drawn with two gradients so it costs no elements.
    ============================================================================ */
-.rule {
+.reg-mark {
+  position: fixed;
+  width: 13px;
+  height: 13px;
+  pointer-events: none;
+  z-index: 45;
+  opacity: 0.55;
+  background-image: linear-gradient(var(--color-ink), var(--color-ink)),
+    linear-gradient(var(--color-ink), var(--color-ink));
+  background-size: 100% 1px, 1px 100%;
+  background-position: center center, center center;
+  background-repeat: no-repeat;
+}
+
+.rule-h {
   height: 1px;
+  width: 100%;
   background: var(--color-rule);
-  transform-origin: left center;
 }
 
 .rule-ink {
-  height: 2px;
+  height: 1px;
+  width: 100%;
   background: var(--color-ink);
-  transform-origin: left center;
 }
 
-.panel {
-  background: var(--color-paper-dim);
-  border: 1px solid var(--color-rule);
-  transition: background 0.5s var(--ease-page), border-color 0.5s var(--ease-page);
+/* Full-bleed orange block. Content on it flips to ink, never to white. */
+.bleed-spot {
+  background: var(--color-spot);
+  color: var(--color-on-spot);
 }
-
-.panel:hover {
-  background: var(--color-paper-deep);
-  border-color: var(--color-ink-faint);
+.bleed-spot .label,
+.bleed-spot .index-mark {
+  color: rgba(10, 10, 10, 0.72);
+}
+.bleed-spot .rule-h,
+.bleed-spot .rule-ink {
+  background: rgba(10, 10, 10, 0.28);
+}
+.bleed-spot .reg-mark {
+  background-image: linear-gradient(#0a0a0a, #0a0a0a), linear-gradient(#0a0a0a, #0a0a0a);
 }
 
 /* ============================================================================
    PAPER TEXTURE
-   A fibrous tooth over the whole page. Multiply keeps it reading as stock
-   rather than as a grey film laid on top.
    ============================================================================ */
 .paper-grain {
   position: fixed;
@@ -226,18 +261,16 @@
   height: 400%;
   pointer-events: none;
   z-index: 9998;
-  opacity: 0.42;
+  opacity: 0.5;
   mix-blend-mode: multiply;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.35'/%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.3'/%3E%3C/svg%3E");
   animation: grain-shift 0.9s steps(4) infinite;
   will-change: transform;
 }
 
-/* Multiply darkens, which is right for tooth on stock but would only muddy a
-   dark ground. On dark the same noise is screened back in as light grain. */
 :root[data-theme='dark'] .paper-grain {
   mix-blend-mode: screen;
-  opacity: 0.16;
+  opacity: 0.14;
 }
 
 @keyframes grain-shift {
@@ -256,46 +289,6 @@
   100% {
     transform: translate3d(0, 0, 0);
   }
-}
-
-/* Ink bleed at the page edges — the faint darkening of a printed spread. */
-.page-edge {
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-  z-index: 9997;
-  background: radial-gradient(
-    ellipse at center,
-    transparent 55%,
-    rgba(20, 17, 15, 0.07) 100%
-  );
-}
-
-:root[data-theme='dark'] .page-edge {
-  background: radial-gradient(
-    ellipse at center,
-    transparent 45%,
-    rgba(0, 0, 0, 0.45) 100%
-  );
-}
-
-/* ============================================================================
-   PATTERNS
-   ============================================================================ */
-.bg-grid-column {
-  background-size: 100% 100%;
-  background-image: repeating-linear-gradient(
-    to right,
-    transparent,
-    transparent calc(8.333% - 1px),
-    rgba(20, 17, 15, 0.05) calc(8.333% - 1px),
-    rgba(20, 17, 15, 0.05) 8.333%
-  );
-}
-
-.edge-fade-x {
-  mask-image: linear-gradient(to right, transparent, black 8%, black 92%, transparent);
-  -webkit-mask-image: linear-gradient(to right, transparent, black 8%, black 92%, transparent);
 }
 
 /* ============================================================================
@@ -323,34 +316,78 @@
   transform-origin: left center;
 }
 
-/* Label swaps for a duplicate sliding up from below. */
-.btn-swap {
-  position: relative;
-  overflow: hidden;
+/* Boxed mono button — the site's only button shape. */
+.btn-box {
+  font-family: var(--font-mono-tech);
+  font-size: 0.6875rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  padding: 0.75rem 1.1rem;
+  border: 1px solid var(--color-ink);
+  color: var(--color-ink);
   display: inline-flex;
   align-items: center;
-  justify-content: center;
+  gap: 0.6rem;
+  transition: background 0.35s var(--ease-page), color 0.35s var(--ease-page);
 }
-.btn-swap > .btn-swap-inner {
-  display: block;
-  transition: transform 0.55s var(--ease-page);
+.btn-box:hover,
+.btn-box:focus-visible {
+  background: var(--color-ink);
+  color: var(--color-paper);
 }
-.btn-swap > .btn-swap-clone {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transform: translateY(105%);
-  transition: transform 0.55s var(--ease-page);
+/* Instant press feedback — waiting for click reads as dead. */
+.btn-box:active {
+  transform: scale(0.98);
+  transition: transform 90ms ease-out;
 }
-.btn-swap:hover > .btn-swap-inner,
-.btn-swap:focus-visible > .btn-swap-inner {
-  transform: translateY(-105%);
+
+.bleed-spot .btn-box {
+  border-color: #0a0a0a;
+  color: #0a0a0a;
 }
-.btn-swap:hover > .btn-swap-clone,
-.btn-swap:focus-visible > .btn-swap-clone {
-  transform: translateY(0);
+.bleed-spot .btn-box:hover,
+.bleed-spot .btn-box:focus-visible {
+  background: #0a0a0a;
+  color: var(--color-spot);
+}
+
+/* CSS stand-in for the WebGL hero object on phones, which never mount the
+   renderer. Two offset radial gradients — a broad body and a tight specular —
+   give it the same key-from-upper-left read as the shader. */
+.hero-orb {
+  border-radius: 52% 48% 45% 55% / 50% 44% 56% 50%;
+  background:
+    radial-gradient(
+      42% 38% at 34% 28%,
+      rgba(255, 217, 196, 0.95) 0%,
+      rgba(255, 217, 196, 0) 60%
+    ),
+    radial-gradient(
+      circle at 38% 32%,
+      var(--color-spot) 0%,
+      var(--color-spot) 34%,
+      #c2350a 100%
+    );
+  animation: orb-drift 14s ease-in-out infinite;
+  will-change: transform, border-radius;
+}
+
+@keyframes orb-drift {
+  0%,
+  100% {
+    border-radius: 52% 48% 45% 55% / 50% 44% 56% 50%;
+    transform: rotate(0deg);
+  }
+  50% {
+    border-radius: 45% 55% 56% 44% / 56% 52% 48% 44%;
+    transform: rotate(6deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-orb {
+    animation: none;
+  }
 }
 
 .field-input {
@@ -360,23 +397,22 @@
   color: var(--color-ink);
   padding: 0.9rem 0;
   width: 100%;
-  font-family: var(--font-body);
-  font-size: 15px;
+  font-family: var(--font-mono-tech);
+  font-size: 0.8125rem;
+  letter-spacing: 0.04em;
   transition: border-color 0.4s var(--ease-page);
 }
-
 .field-input:focus {
   outline: none;
   border-bottom-color: var(--color-ink);
 }
-
 .field-input:focus-visible {
   outline: none;
 }
-
 .field-input::placeholder {
   color: var(--color-ink-faint);
-  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
 }
 
 .skip-link {
@@ -391,76 +427,6 @@
   transform: translateY(0);
 }
 
-/* ============================================================================
-   FULL-HEIGHT PORTRAIT BLEED
-   The figure dissolves into the ground on every inner edge instead of ending at
-   a crop. Two masks are composed: a horizontal one that fades toward the copy,
-   and a vertical one that softens the top and bottom.
-   ============================================================================ */
-.portrait-bleed {
-  /* Held deliberately low. The form sits on top of the left half of this
-     element and there is no layout that clears it — a full-height figure and a
-     right-hand form necessarily overlap — so the figure has to stay faint
-     enough that field labels and the copy button keep their contrast. */
-  opacity: 0.26;
-  mix-blend-mode: multiply;
-  -webkit-mask-image: linear-gradient(
-      to right,
-      transparent 0%,
-      rgba(0, 0, 0, 0.18) 42%,
-      black 88%
-    ),
-    linear-gradient(to bottom, transparent 0%, black 18%, black 82%, transparent 100%);
-  mask-image: linear-gradient(
-      to right,
-      transparent 0%,
-      rgba(0, 0, 0, 0.18) 42%,
-      black 88%
-    ),
-    linear-gradient(to bottom, transparent 0%, black 18%, black 82%, transparent 100%);
-  -webkit-mask-composite: source-in;
-  mask-composite: intersect;
-}
-
-:root[data-theme='dark'] .portrait-bleed {
-  /* Screen on dark: the photograph's own black surround drops away and only the
-     lit figure survives — the same read the light ground gets from multiply. */
-  opacity: 0.34;
-  mix-blend-mode: screen;
-}
-
-/* Phones stack the form under the copy, so the figure would sit directly
-   behind body text with nowhere to go. */
-@media (max-width: 767px) {
-  .portrait-bleed {
-    opacity: 0.14;
-  }
-}
-
-/* ============================================================================
-   TOUCH TARGETS
-   Editorial type is small by nature, which left a dozen controls 16–39px tall
-   on a phone — under the 44px minimum. Height is added only on coarse pointers,
-   so the tight desktop typography is untouched. Scoped to standalone controls
-   (`data-cursor`) rather than every anchor, so inline links inside prose don't
-   get boxed out.
-   ============================================================================ */
-@media (pointer: coarse) {
-  a[data-cursor],
-  button[data-cursor],
-  .skip-link {
-    /* Size only — never `display`. An earlier version also forced
-       `display: inline-flex`, which silently destroyed every block-level
-       control: the button wrapping each work image became a centred flex
-       container, its aspect-ratio child collapsed to zero height, and all
-       three case-study images vanished on phones. Do not override display
-       from a broad attribute selector. */
-    min-height: 44px;
-    min-width: 44px;
-  }
-}
-
-/* Audio-on equaliser bars — visible proof the sound toggle did something. */
 @keyframes eq-bounce {
   0%,
   100% {
@@ -477,7 +443,21 @@
 }
 
 /* ============================================================================
-   REDUCED MOTION
+   TOUCH TARGETS
+   Size only — never `display`. Overriding display from a broad attribute
+   selector collapses block-level controls.
+   ============================================================================ */
+@media (pointer: coarse) {
+  a[data-cursor],
+  button[data-cursor],
+  .skip-link {
+    min-height: 44px;
+    min-width: 44px;
+  }
+}
+
+/* ============================================================================
+   REDUCED MOTION / TRANSPARENCY / CONTRAST
    ============================================================================ */
 @media (prefers-reduced-motion: reduce) {
   *,
@@ -495,5 +475,21 @@
 
   .reveal-pending {
     visibility: visible;
+  }
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  .paper-grain {
+    display: none;
+  }
+}
+
+@media (prefers-contrast: more) {
+  :root {
+    --color-ink-faint: #4a4a46;
+    --color-rule: #8a8984;
+  }
+  .reg-mark {
+    opacity: 1;
   }
 }

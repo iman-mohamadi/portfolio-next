@@ -1,9 +1,6 @@
 import { useMemo, useRef, useState } from 'react';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
-import { ParticleField } from './ParticleField';
-import { NameParticles } from './NameParticles';
-import { PortraitVeil } from './PortraitVeil';
-import { HERO_PORTRAIT } from '../content/media';
+import { Blob } from './Blob';
 import { gsap, ScrollTrigger, useGSAP } from '../lib/gsap';
 import { damp, perfTier } from '../lib/motion';
 import { CAMERA_REST_Z } from './useStableViewport';
@@ -46,15 +43,10 @@ function Scene({
     <>
       <CameraRig scrollRef={scrollRef} pointerRef={pointerRef} />
 
-      {/* Two elements only: the portrait as a halftone plate, and the wordmark
-          struck from ink particles. A faint fibre layer sits behind them for
-          depth. There is no post-processing chain — bloom and chromatic
-          aberration are screen artifacts, and on a paper ground bloom just
-          washes the ink toward white. Paper tooth and edge bleed are done in
-          CSS over the whole page so the canvas and the DOM share one surface. */}
-      <PortraitVeil src={HERO_PORTRAIT} scrollRef={scrollRef} pointerRef={pointerRef} />
-      <ParticleField scrollRef={scrollRef} pointerRef={pointerRef} quality={quality} />
-      <NameParticles scrollRef={scrollRef} pointerRef={pointerRef} quality={quality} />
+      {/* One object, centred between the two display words. The wordmark and
+          portrait shaders that used to live here are now studies in the Tools
+          section, where they are the subject rather than the backdrop. */}
+      <Blob scrollRef={scrollRef} pointerRef={pointerRef} quality={quality} />
     </>
   );
 }
@@ -148,9 +140,9 @@ export default function HeroCanvas() {
           depth: true,
         }}
         onCreated={({ gl }) => {
-          // Transparent: the paper ground comes from the page behind the canvas,
-          // so the DOM and the WebGL layer share one surface and one grain.
-          gl.setClearColor(0xf2f0eb, 0);
+          // Transparent: the ground comes from the page behind the canvas, so the
+          // DOM and the WebGL layer share one surface and one grain.
+          gl.setClearColor(0xe9e8e4, 0);
         }}
       >
         <Scene scrollRef={scrollRef} pointerRef={pointerRef} quality={quality} />
