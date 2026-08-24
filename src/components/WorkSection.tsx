@@ -1,8 +1,7 @@
 import React, { Suspense, lazy, useCallback, useRef, useState } from 'react';
-import { ArrowUpRight } from 'lucide-react';
-import { gsap, useGSAP } from '../lib/gsap';
-import { Reveal } from './motion/Reveal';
+import { gsap, ScrollTrigger, useGSAP } from '../lib/gsap';
 import { EncryptedText } from './motion/EncryptedText';
+import { useReducedMotion } from '../hooks/useReducedMotion';
 
 // Case-study modals carry the heaviest dependencies on the page — the Woodcoder
 // one pulls in all of Three.js. Loading them statically put the entire renderer
@@ -27,66 +26,123 @@ type ProjectKey = 'raya' | 'hotelyar' | 'woodcoder';
 
 interface WorkProject {
   key: ProjectKey;
-  index: string;
   title: string;
-  discipline: string;
-  summary: string;
-  stack: string;
-  status: string;
-  cta: string;
+  subtitle: string;
+  description: string;
   image: string;
 }
 
 const PROJECTS: WorkProject[] = [
   {
     key: 'raya',
-    index: '01',
-    title: 'RAYA UI',
-    discipline: 'Component Architecture',
-    summary:
-      'An enterprise design system built to stay coherent across forty product teams — tokenised, versioned, and rendered identically on every surface.',
-    stack: 'React / TypeScript',
-    status: 'Design system — 40 teams',
-    cta: 'View metrics',
-    image:
-      '/work-raya.jpg',
+    title: 'Raya UI',
+    subtitle: 'Open design system',
+    description:
+      'An open component library and design system — tokenised primitives, a documentation site, and a CLI that scaffolds components straight into a project. Published to npm and versioned so consuming apps can upgrade on their own schedule.',
+    image: '/work-raya.jpg',
   },
   {
     key: 'hotelyar',
-    index: '02',
-    title: 'HOTELYAR',
-    discipline: 'SSG / SSR Mastery',
-    summary:
-      'A reservation routing matrix handling 1.2M queries per second, where every millisecond of TTFB was worth measurable revenue.',
-    stack: 'Vue / Nuxt',
-    status: 'Reservations — 1.2M q/s',
-    cta: 'View platform',
-    image:
-      '/work-hotelyar.jpg',
+    title: 'Hotelyar',
+    subtitle: 'Reservation platform',
+    description:
+      'A reservation platform where server rendering and cache strategy decide the experience. Route-level data loading, aggressive edge caching, and a render path tuned so every millisecond of TTFB stays visible in the funnel.',
+    image: '/work-hotelyar.jpg',
   },
   {
     key: 'woodcoder',
-    index: '03',
-    title: 'WOODCODER',
-    discipline: 'Parametric Geometry',
-    summary:
-      'A live parametric modelling engine in the browser: real-time mesh generation, custom material shaders, and a 60fps floor on integrated GPUs.',
-    stack: 'WebGL / Three.js',
-    status: 'Parametric engine — live 3D',
-    cta: 'Launch experience',
-    image:
-      '/work-woodcoder.jpg',
+    title: 'Woodcoder',
+    subtitle: 'Parametric configurator',
+    description:
+      'A parametric configurator running in the browser: geometry rebuilt live from the parameters, custom material shaders, and instanced draw calls that keep the frame budget intact on integrated graphics.',
+    image: '/work-woodcoder.jpg',
   },
 ];
 
+/** Reveal grid. Block width sets the row height so the steps stay square-ish. */
+const COLS = 12;
+const ROWS = 8;
+
+interface PlateProps {
+  project: WorkProject;
+  /** 0 hidden, 1 fully revealed. */
+  progress: number;
+  offsets: number[];
+}
+
+/**
+ * One project image revealed by the site's block wipe.
+ *
+ * Each column is a full-height slice of the same image, clipped from the top.
+ * Clipping rather than resizing a wrapper matters: the picture has to stay
+ * fixed in the frame while the blocks climb over it, and any approach that
+ * anchors the image to the growing column drags it upward as it reveals.
+ */
+const Plate: React.FC<PlateProps> = ({ project, progress, offsets }) => {
+  const span = 1 - Math.max(...offsets);
+
+  return (
+    <div className="absolute inset-0 overflow-hidden">
+      {Array.from({ length: COLS }, (_, i) => {
+        const local = Math.min(1, Math.max(0, (progress - offsets[i]) / span));
+        const h = Math.ceil(local * ROWS) / ROWS;
+        return (
+          <div
+            key={i}
+            className="absolute top-0 bottom-0 overflow-hidden"
+            style={{
+              left: `${(i / COLS) * 100}%`,
+              // Hairline overlap: sub-pixel column gaps otherwise show the
+              // outgoing image as vertical seams.
+              width: `calc(${100 / COLS}% + 1px)`,
+              clipPath: `inset(${(1 - h) * 100}% 0 0 0)`,
+            }}
+          >
+            <div
+              className="absolute top-0 h-full"
+              style={{ left: `-${i * 100}%`, width: `${COLS * 100}%` }}
+            >
+              <img
+                src={project.image}
+                alt=""
+                loading="lazy"
+                className="w-full h-full object-cover"
+              />
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+};
+
+/**
+ * Selected work as a pinned reel: the heading holds at the top while the
+ * projects advance beneath it, each one wiped in over the last with the same
+ * block transition the section grounds use. The ordinal rolls vertically in
+ * step, so the number and the plate always agree.
+ *
+ * Under `lg`, or with reduced motion, the pin is dropped and the projects
+ * simply stack — a scroll-jacked reel with no pointer is worse than a list.
+ */
 export const WorkSection: React.FC = () => {
   const sectionRef = useRef<HTMLElement>(null);
-  const trackRef = useRef<HTMLDivElement>(null);
-  const progressRef = useRef<HTMLDivElement>(null);
+  const numberRef = useRef<HTMLDivElement>(null);
+  const [active, setActive] = useState(0);
   const [openModal, setOpenModal] = useState<ProjectKey | null>(null);
   // Once a modal has been opened it stays mounted, so its close animation can
   // finish and reopening is instant.
   const [mounted, setMounted] = useState<ProjectKey[]>([]);
+  const reduced = useReducedMotion();
+
+  // Stable per-column head start, shared by every transition in the section.
+  const offsets = useRef<number[]>(
+    Array.from({ length: COLS }, () => Math.random() * 0.32)
+  ).current;
+
+  const [progress, setProgress] = useState<number[]>(() =>
+    PROJECTS.map((_, i) => (i === 0 ? 1 : 0))
+  );
 
   const open = useCallback((key: ProjectKey) => {
     setMounted((keys) => (keys.includes(key) ? keys : [...keys, key]));
@@ -97,72 +153,62 @@ export const WorkSection: React.FC = () => {
 
   useGSAP(
     () => {
+      gsap.from('.work-line', {
+        yPercent: 105,
+        duration: 1.1,
+        ease: 'arch',
+        scrollTrigger: { trigger: sectionRef.current, start: 'top 78%', once: true },
+      });
+
       const mm = gsap.matchMedia();
 
-      // Horizontal pinning only where there is room for it and the visitor
-      // hasn't asked for less motion. Everywhere else the panels simply stack.
-      mm.add(
-        '(min-width: 1024px) and (prefers-reduced-motion: no-preference)',
-        () => {
-          const track = trackRef.current;
-          const section = sectionRef.current;
-          if (!track || !section) return;
+      mm.add('(min-width: 1024px) and (prefers-reduced-motion: no-preference)', () => {
+        const section = sectionRef.current;
+        if (!section) return;
 
-          const distance = () => track.scrollWidth - window.innerWidth;
+        const steps = PROJECTS.length - 1;
 
-          const tween = gsap.to(track, {
-            x: () => -distance(),
-            ease: 'none',
-            scrollTrigger: {
-              trigger: section,
-              start: 'top top',
-              end: () => `+=${distance()}`,
-              pin: true,
-              scrub: 0.8,
-              anticipatePin: 1,
-              invalidateOnRefresh: true,
-              onUpdate: (self) => {
-                if (progressRef.current) {
-                  gsap.set(progressRef.current, { scaleX: self.progress });
-                }
-              },
-            },
-          });
+        const st = ScrollTrigger.create({
+          trigger: section,
+          start: 'top top',
+          end: () => `+=${window.innerHeight * steps * 1.15}`,
+          pin: true,
+          scrub: true,
+          anticipatePin: 1,
+          invalidateOnRefresh: true,
+          // Same reason as the Tools pin: this spacer moves every later
+          // section, so it has to be measured before anything reading their
+          // positions — ScrollBackdrop most of all.
+          refreshPriority: 1,
+          onUpdate: (self) => {
+            const pos = self.progress * steps;
+            const idx = Math.min(steps, Math.floor(pos));
+            const local = pos - idx;
 
-          // Counter-parallax inside each frame: the image drifts against the
-          // horizontal travel, so the panels gain depth instead of sliding flat.
-          const panels = gsap.utils.toArray<HTMLElement>('.work-panel');
-          panels.forEach((panel) => {
-            const img = panel.querySelector('.work-image');
-            if (!img) return;
-            gsap.fromTo(
-              img,
-              { xPercent: -8, scale: 1.14 },
-              {
-                xPercent: 8,
-                scale: 1,
-                ease: 'none',
-                scrollTrigger: {
-                  trigger: panel,
-                  containerAnimation: tween,
-                  start: 'left right',
-                  end: 'right left',
-                  scrub: true,
-                },
-              }
+            setProgress(
+              PROJECTS.map((_, i) => {
+                if (i <= idx) return 1;
+                if (i === idx + 1) return local;
+                return 0;
+              })
             );
-          });
+            setActive(local > 0.5 ? Math.min(steps, idx + 1) : idx);
 
-          return () => {
-            tween.kill();
-          };
-        }
-      );
+            if (numberRef.current) {
+              gsap.set(numberRef.current, { yPercent: -(pos / PROJECTS.length) * 100 });
+            }
+          },
+        });
+
+        return () => st.kill();
+      });
 
       return () => mm.revert();
     },
-    { scope: sectionRef }
+    { scope: sectionRef, dependencies: [reduced] }
   );
+
+  const current = PROJECTS[active];
 
   return (
     <>
@@ -170,102 +216,98 @@ export const WorkSection: React.FC = () => {
         ref={sectionRef}
         id="work"
         aria-label="Selected work"
-        className="relative z-20 bg-paper-dim border-t border-rule overflow-hidden lg:h-[100svh] py-24 lg:py-0"
+        className="relative z-20 lg:h-[100svh] lg:overflow-hidden py-20 lg:py-0 lg:flex lg:flex-col lg:justify-center"
       >
-        <div className="lg:h-full lg:flex lg:flex-col">
-          {/* Header. The heading is deliberately mid-scale here: at display-lg
-              it overlapped the pinned track, because the track is vertically
-              centred in the remaining height rather than pushed below. */}
-          <div className="max-w-[1440px] w-full mx-auto px-6 md:px-12 lg:pt-24 shrink-0">
-            <div className="flex items-center gap-4 mb-6">
-              <span className="label text-ink-faint">(02)</span>
-              <span className="h-px flex-1 bg-rule" />
-              <span className="label text-spot">Selected work</span>
+        <div className="px-6 md:px-10 lg:px-0 shrink-0">
+          <h2 className="display text-[clamp(3rem,11vw,10rem)] text-ink text-center leading-[0.82]">
+            <span className="split-line-mask block">
+              <span className="work-line block">Work</span>
+            </span>
+          </h2>
+        </div>
+
+        {/* Desktop reel */}
+        <div className="hidden lg:block border-y border-ink/35 mt-10">
+          <div className="grid grid-cols-12 items-stretch min-h-[58svh]">
+            {/* Ordinal + action */}
+            <div className="col-span-3 relative flex flex-col justify-between p-6 border-r border-ink/35">
+              <div className="h-[clamp(4rem,9vw,7.5rem)] overflow-hidden">
+                <div ref={numberRef} className="will-change-transform">
+                  {PROJECTS.map((p, i) => (
+                    <div
+                      key={p.key}
+                      className="h-[clamp(4rem,9vw,7.5rem)] flex items-start font-display text-[clamp(3.5rem,8vw,6.5rem)] leading-none text-ink"
+                      style={{ fontVariationSettings: "'wdth' 100, 'wght' 300" }}
+                      aria-hidden="true"
+                    >
+                      {String(i + 1).padStart(2, '0')}
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <button
+                onClick={() => open(current.key)}
+                className="btn-box self-start"
+                data-cursor="active"
+              >
+                <EncryptedText text="View project" />
+              </button>
             </div>
-            <Reveal
-              as="h2"
-              split="chars"
-              className="font-display font-black text-display-md text-ink"
-            >
-              Platforms
-            </Reveal>
-          </div>
 
-          {/* Horizontal track (stacks vertically under lg) */}
-          <div className="lg:flex-1 lg:flex lg:items-center lg:overflow-hidden mt-14 lg:mt-6">
-            <div
-              ref={trackRef}
-              className="flex flex-col lg:flex-row gap-16 lg:gap-10 px-6 md:px-12 lg:pl-[max(3rem,calc((100vw-1440px)/2+3rem))] lg:pr-[30vw] w-full lg:w-max"
-            >
-              {PROJECTS.map((project) => (
-                <article
-                  key={project.key}
-                  className="work-panel group relative w-full lg:w-[46vw] xl:w-[42vw] shrink-0"
-                >
-                  <button
-                    onClick={() => open(project.key)}
-                    className="block w-full text-left"
-                    data-cursor="active"
-                    data-cursor-text="OPEN"
-                    aria-label={`${project.title} — ${project.cta}`}
-                  >
-                    {/* Plate: hairline frame, no rounding. These are screenshots
-                        of dark interfaces, so on paper they need contrast and a
-                        border or they read as grey slabs. */}
-                    <div className="relative overflow-hidden border border-ink/25 aspect-[16/10] bg-paper-deep">
-                      <img
-                        alt={`${project.title} interface`}
-                        loading="lazy"
-                        className="work-image absolute inset-0 w-full h-full object-cover grayscale contrast-[1.35] brightness-105 group-hover:grayscale-0 group-hover:contrast-100 transition-[filter] duration-700 will-change-transform"
-                        src={project.image}
-                        referrerPolicy="no-referrer"
-                      />
-                    </div>
-                  </button>
-
-                  {/* Plate caption, set below the image as it would be in print. */}
-                  <div className="flex items-baseline gap-3 pt-3 border-t border-rule mt-3">
-                    <span className="folio">{project.index}</span>
-                    <span className="label text-ink-faint">{project.status}</span>
-                  </div>
-
-                  <div className="pt-6">
-                    <p className="label text-spot mb-4">{project.discipline}</p>
-                    <h3 className="font-display font-bold text-[clamp(2rem,4vw,3.5rem)] tracking-tight text-ink mb-4 leading-none">
-                      {project.title}
-                    </h3>
-                    <p className="font-body text-sm md:text-base text-ink-soft font-light leading-relaxed max-w-lg mb-7 text-pretty">
-                      {project.summary}
-                    </p>
-
-                    <div className="flex items-center justify-between gap-6 border-t border-rule pt-5">
-                      <button
-                        onClick={() => open(project.key)}
-                        className="text-[11px] uppercase tracking-[0.2em] text-ink hover:text-spot transition-colors duration-500 inline-flex items-center gap-2 whitespace-nowrap link-underline"
-                        data-cursor="active"
-                      >
-                        <EncryptedText text={project.cta} />
-                        <ArrowUpRight className="w-3.5 h-3.5" />
-                      </button>
-                      <span className="label text-ink-faint">{project.stack}</span>
-                    </div>
-                  </div>
-                </article>
+            {/* Plate — every project stacked, wiped in over the last */}
+            <div className="col-span-6 relative bg-paper-deep overflow-hidden">
+              {PROJECTS.map((p, i) => (
+                <div key={p.key} className="absolute inset-0" style={{ zIndex: i + 1 }}>
+                  <Plate project={p} progress={progress[i]} offsets={offsets} />
+                </div>
               ))}
             </div>
-          </div>
 
-          {/* Horizontal progress rail — orientation cue for a non-standard scroll axis */}
-          <div className="hidden lg:block max-w-[1440px] w-full mx-auto px-12 pb-10 shrink-0">
-            <div className="flex items-center gap-5">
-              <span className="label text-ink-faint whitespace-nowrap">Drag / scroll</span>
-              <div className="h-px flex-1 bg-rule overflow-hidden">
-                <div ref={progressRef} className="h-full w-full bg-spot origin-left scale-x-0" />
+            {/* Meta */}
+            <div className="col-span-3 relative flex flex-col justify-between p-6 border-l border-ink/35">
+              <div aria-live="polite">
+                <p className="label text-ink">{current.title}</p>
+                <p className="label text-ink-faint">{current.subtitle}</p>
               </div>
-              <span className="label text-ink-faint">03</span>
+              <p className="label text-ink-soft leading-relaxed max-w-[26rem]">
+                {current.description}
+              </p>
             </div>
           </div>
         </div>
+
+        {/* Stacked list under lg, and the accessible version of the reel */}
+        <ul className="lg:hidden mt-12 px-6 md:px-10 space-y-14">
+          {PROJECTS.map((p, i) => (
+            <li key={p.key}>
+              <div className="flex items-baseline justify-between gap-4 mb-4">
+                <span className="font-display text-4xl text-ink leading-none">
+                  {String(i + 1).padStart(2, '0')}
+                </span>
+                <span className="label text-ink-faint text-right">{p.subtitle}</span>
+              </div>
+
+              <div className="aspect-[4/3] border border-ink/25 bg-paper-deep overflow-hidden">
+                <img
+                  src={p.image}
+                  alt={`${p.title} interface`}
+                  loading="lazy"
+                  className="w-full h-full object-cover"
+                />
+              </div>
+
+              <h3 className="display text-[clamp(1.75rem,7vw,2.75rem)] text-ink mt-5">
+                {p.title}
+              </h3>
+              <p className="label text-ink-soft leading-relaxed mt-3">{p.description}</p>
+
+              <button onClick={() => open(p.key)} className="btn-box mt-6" data-cursor="active">
+                <EncryptedText text="View project" />
+              </button>
+            </li>
+          ))}
+        </ul>
       </section>
 
       <Suspense fallback={null}>
