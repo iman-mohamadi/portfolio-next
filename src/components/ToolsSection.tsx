@@ -1,89 +1,118 @@
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { gsap, useGSAP } from '../lib/gsap';
-import { VelocityMarquee } from './motion/VelocityMarquee';
-import { EncryptedText } from './motion/EncryptedText';
 import { useReducedMotion } from '../hooks/useReducedMotion';
+import { PixelPath } from './tools/PixelPath';
+import { ChromaWarp, SplitMask, TextMaze, ParticleCloud } from './tools/studies';
 
-interface ToolGroup {
+interface Study {
   index: string;
-  title: string;
+  name: string;
   note: string;
-  items: string[];
+  /** Panel ground — the reference alternates dark and light plates. */
+  tone: 'dark' | 'light';
+  render: () => React.ReactNode;
 }
 
-const GROUPS: ToolGroup[] = [
+const STUDIES: Study[] = [
   {
-    index: '01',
-    title: 'Build',
-    note: 'What the product is actually written in.',
-    items: ['TypeScript', 'React 19', 'Vue 3 / Nuxt', 'Next.js', 'Vite', 'Node.js', 'Python'],
+    index: '001',
+    name: 'Chroma warp',
+    note: 'Per-channel offset on mirrored type.',
+    tone: 'dark',
+    render: () => <ChromaWarp />,
   },
   {
-    index: '02',
-    title: 'Motion',
-    note: 'Timing, easing, and everything that moves.',
-    items: ['GSAP', 'ScrollTrigger', 'Lenis', 'Motion', 'CSS transforms'],
+    index: '002',
+    name: 'Split mask',
+    note: 'Stripe mask swept over outlined glyphs.',
+    tone: 'dark',
+    render: () => <SplitMask />,
   },
   {
-    index: '03',
-    title: 'Graphics',
-    note: 'Real-time rendering, written by hand.',
-    items: ['Three.js', 'React Three Fiber', 'GLSL', 'Canvas 2D', 'Web Audio'],
+    index: '003',
+    name: 'Text maze',
+    note: 'Characters settling out of a scramble.',
+    tone: 'light',
+    render: () => <TextMaze />,
   },
   {
-    index: '04',
-    title: 'Ship',
-    note: 'Getting it out and keeping it fast.',
-    items: ['Tailwind v4', 'Storybook', 'Vitest', 'Playwright', 'Docker', 'Vercel'],
+    index: '004',
+    name: 'Particles',
+    note: 'Canvas cloud gathering into a plume.',
+    tone: 'light',
+    render: () => <ParticleCloud />,
   },
-];
-
-const MARQUEE = [
-  'TypeScript',
-  'React',
-  'Vue',
-  'GSAP',
-  'Three.js',
-  'GLSL',
-  'Tailwind',
-  'Node',
-  'Vite',
-  'Nuxt',
-  'WebGL',
-  'Design systems',
 ];
 
 /**
- * The second half of the orange block. The same numbered-row language as About,
- * but the rows expand: hovering (or focusing) one lifts its stack of tools into
- * view. A velocity-driven marquee closes the block before the page returns to
- * paper.
+ * The studies run on a horizontal track pinned to the viewport, so vertical
+ * scroll drives sideways travel — the same trick the reference uses to make
+ * the section read as a reel rather than a grid.
+ *
+ * A block staircase spans the full track width with a sprite running along
+ * its crest, passing behind the study plates. Under `lg`, or with reduced
+ * motion, the pin is dropped entirely and the studies simply stack.
  */
 export const ToolsSection: React.FC = () => {
   const sectionRef = useRef<HTMLElement>(null);
-  const [active, setActive] = useState<string>(GROUPS[0].index);
+  const trackRef = useRef<HTMLDivElement>(null);
+  const [trackWidth, setTrackWidth] = useState(0);
   const reduced = useReducedMotion();
+
+  // The path canvas needs the track's real scroll width, which is only known
+  // after the panels have laid out.
+  useEffect(() => {
+    const measure = () => {
+      if (trackRef.current) setTrackWidth(trackRef.current.scrollWidth);
+    };
+    measure();
+    window.addEventListener('resize', measure);
+    return () => window.removeEventListener('resize', measure);
+  }, []);
 
   useGSAP(
     () => {
-      if (reduced) return;
-
       gsap.from('.tools-line', {
         yPercent: 105,
         duration: 1.1,
         ease: 'arch',
-        stagger: 0.08,
         scrollTrigger: { trigger: sectionRef.current, start: 'top 72%', once: true },
       });
 
-      gsap.from('.tools-row', {
-        opacity: 0,
-        y: 24,
-        duration: 0.85,
-        ease: 'arch',
-        stagger: 0.07,
-        scrollTrigger: { trigger: '.tools-rows', start: 'top 85%', once: true },
+      const mm = gsap.matchMedia();
+
+      mm.add('(min-width: 1024px) and (prefers-reduced-motion: no-preference)', () => {
+        const track = trackRef.current;
+        const section = sectionRef.current;
+        if (!track || !section) return;
+
+        const distance = () => Math.max(0, track.scrollWidth - window.innerWidth);
+
+        const tween = gsap.to(track, {
+          x: () => -distance(),
+          ease: 'none',
+          scrollTrigger: {
+            trigger: section,
+            start: 'top top',
+            end: () => `+=${distance()}`,
+            pin: true,
+            scrub: 0.7,
+            anticipatePin: 1,
+            invalidateOnRefresh: true,
+            // This pin inserts a spacer that pushes every later section down,
+            // so it has to be measured before anything that reads those
+            // sections' positions — otherwise ScrollBackdrop computes its
+            // boundaries against a document that does not exist yet and the
+            // ground wipes to the next colour while this section is still
+            // pinned on screen.
+            refreshPriority: 1,
+          },
+        });
+
+        return () => tween.kill();
       });
+
+      return () => mm.revert();
     },
     { scope: sectionRef, dependencies: [reduced] }
   );
@@ -92,86 +121,65 @@ export const ToolsSection: React.FC = () => {
     <section
       ref={sectionRef}
       id="tools"
-      aria-label="Tools"
-      className="bleed-spot relative z-20 pt-14 md:pt-20 pb-20 md:pb-24 px-6 md:px-10"
+      aria-label="Tools and studies"
+      className="bleed-spot relative z-20 lg:h-[100svh] lg:overflow-hidden py-20 lg:py-0 lg:flex lg:flex-col"
     >
-      <div className="flex items-center gap-4 mb-12 md:mb-16">
-        <span className="label">[ Tools ]</span>
-        <span className="rule-h flex-1" />
-        <span className="label">Stack / 2026</span>
+      <div className="px-6 md:px-10 lg:pt-20 shrink-0">
+        <div className="flex items-center gap-4 mb-8">
+          <span className="label">[ Tools ]</span>
+          <span className="rule-h flex-1" />
+          <span className="label">Studies / 004</span>
+        </div>
+
+        <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-6">
+          <h2 className="display text-[clamp(2.5rem,8vw,7rem)]">
+            <span className="split-line-mask block">
+              <span className="tools-line block">Tools</span>
+            </span>
+          </h2>
+          <p className="max-w-[30rem] text-sm md:text-base leading-relaxed opacity-80 lg:pb-3">
+            No allegiances — whatever gets it built and keeps it maintainable a
+            year later. These are the small things I write to keep the hand in.
+          </p>
+        </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-x-10 gap-y-10 items-end mb-16 md:mb-24">
-        <h2 className="lg:col-span-7 display text-[clamp(3rem,12vw,11rem)]">
-          <span className="split-line-mask block">
-            <span className="tools-line block">Tools</span>
-          </span>
-        </h2>
-        <p className="lg:col-span-5 max-w-[30rem] text-sm md:text-base leading-relaxed opacity-80 lg:pb-4">
-          No allegiances. I pick whatever gets the thing built and keeps it
-          maintainable a year later — then learn it properly rather than
-          half-using four alternatives.
-        </p>
-      </div>
+      {/* Track */}
+      <div className="lg:flex-1 lg:flex lg:items-center mt-14 lg:mt-0 overflow-x-auto lg:overflow-visible">
+        <div
+          ref={trackRef}
+          className="relative flex items-end gap-8 md:gap-14 px-6 md:px-10 lg:pr-[35vw] w-max"
+        >
+          {/* Terrain + runner, spanning the whole track behind the plates. */}
+          <div className="pointer-events-none absolute left-0 bottom-0 z-0">
+            <PixelPath width={trackWidth} className="block" />
+          </div>
 
-      <div className="tools-rows">
-        <ul>
-          {GROUPS.map((group) => {
-            const isActive = active === group.index;
-            return (
-              <li
-                key={group.index}
-                className="tools-row sweep-row border-t border-[#0a0a0a]/28 last:border-b"
-                onMouseEnter={() => setActive(group.index)}
-                onFocus={() => setActive(group.index)}
+          {STUDIES.map((study) => (
+            /* Bottom margin clears the terrain band (7 blocks tall) so the
+               captions sit above it rather than on top of the blocks. */
+            <figure
+              key={study.index}
+              className="relative z-10 shrink-0 w-[78vw] sm:w-[52vw] lg:w-[34vw] max-w-[520px] mb-[190px]"
+            >
+              <div
+                className={`relative aspect-[16/10] overflow-hidden ${
+                  study.tone === 'dark' ? 'bg-[#0a0a0a]' : 'bg-[#e9e8e4]'
+                }`}
               >
-                <div className="grid grid-cols-1 md:grid-cols-12 gap-4 md:gap-8 items-baseline py-7 md:py-8">
-                  <span className="index-mark md:col-span-1">[{group.index}]</span>
+                {study.render()}
+              </div>
 
-                  <h3
-                    className={`row-title md:col-span-4 transition-transform duration-500 ease-out ${
-                      isActive ? 'md:translate-x-2' : ''
-                    }`}
-                    tabIndex={0}
-                    data-cursor="active"
-                  >
-                    <EncryptedText text={group.title} />
-                  </h3>
-
-                  <p className="sweep-dim md:col-span-3 text-sm leading-relaxed opacity-75 text-pretty">
-                    {group.note}
-                  </p>
-
-                  {/* The stack itself. Collapsed rows keep the list scannable;
-                      the active row is the one you are actually reading. */}
-                  <div className="md:col-span-4 flex flex-wrap gap-x-2 gap-y-1.5 md:justify-end">
-                    {group.items.map((item) => (
-                      <span
-                        key={item}
-                        className={`label sweep-chip border px-2 py-1 whitespace-nowrap transition-[opacity,background] duration-500 ${
-                          isActive ? 'opacity-100 bg-[#0a0a0a]/8' : 'opacity-45'
-                        }`}
-                      >
-                        {item}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              </li>
-            );
-          })}
-        </ul>
-      </div>
-
-      <div className="mt-20 md:mt-28 -mx-6 md:-mx-10 border-y border-[#0a0a0a]/28 py-5">
-        <VelocityMarquee
-          items={MARQUEE}
-          baseSpeed={40}
-          className="display text-[clamp(1.75rem,4.5vw,4rem)]"
-          separator={
-            <span className="inline-block w-2.5 h-2.5 bg-[#0a0a0a] mx-6 md:mx-10 align-middle" />
-          }
-        />
+              <figcaption className="flex items-baseline justify-between gap-4 pt-3">
+                <span className="label">{study.name}</span>
+                <span className="label">{study.index}</span>
+              </figcaption>
+              <p className="sweep-dim text-xs leading-relaxed opacity-70 mt-1 max-w-[26rem]">
+                {study.note}
+              </p>
+            </figure>
+          ))}
+        </div>
       </div>
     </section>
   );

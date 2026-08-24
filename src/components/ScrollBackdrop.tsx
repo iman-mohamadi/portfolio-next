@@ -131,6 +131,9 @@ export const ScrollBackdrop: React.FC = () => {
           // keeps the wipe a discrete sweep between two settled states.
           start: 'top 70%',
           end: 'top 15%',
+          // Measured last, after any pin has inserted its spacer and settled
+          // the real document positions these boundaries depend on.
+          refreshPriority: -1,
           onUpdate: (self) => {
             setBase(palette[from]);
             setColumns(palette[to]);
