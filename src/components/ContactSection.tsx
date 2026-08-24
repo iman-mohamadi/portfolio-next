@@ -77,6 +77,19 @@ export const ContactSection: React.FC = () => {
         stagger: 0.1,
         scrollTrigger: { trigger: sectionRef.current, start: 'top 60%', once: true },
       });
+
+      // Drifts against the section's travel so the portrait sits behind the
+      // plate rather than moving with it.
+      gsap.to('.contact-portrait', {
+        yPercent: -12,
+        ease: 'none',
+        scrollTrigger: {
+          trigger: sectionRef.current,
+          start: 'top bottom',
+          end: 'bottom top',
+          scrub: true,
+        },
+      });
     },
     { scope: sectionRef, dependencies: [reduced] }
   );
@@ -86,9 +99,27 @@ export const ContactSection: React.FC = () => {
       ref={sectionRef}
       id="contact"
       aria-label="Contact"
-      className="bleed-spot relative z-20 flex items-center px-6 md:px-10 py-20 md:py-24"
+      className="bleed-spot relative z-20 overflow-hidden flex items-center px-6 md:px-10 pt-20 md:pt-24 pb-40 md:pb-56"
     >
-      <div className="plate-frame w-full border border-[#0a0a0a]/85">
+      {/* Portrait bled off the bottom-right of the whole section rather than
+          boxed inside a panel — the plate's cells have no background of their
+          own, so it reads through them as part of the ground. Masked rather
+          than blended: the ground is painted by the fixed backdrop layer and
+          this section opens its own stacking context, so a blend mode would
+          have nothing behind it to blend with. */}
+      <div
+        className="contact-portrait pointer-events-none absolute right-0 -bottom-8 z-0 w-[78%] sm:w-[52%] lg:w-[38%] max-w-[620px]"
+        aria-hidden="true"
+      >
+        <img
+          src={CONTACT_PORTRAIT}
+          alt=""
+          loading="lazy"
+          className="portrait-fade w-full h-auto object-contain grayscale contrast-[1.35] opacity-55"
+        />
+      </div>
+
+      <div className="plate-frame relative z-10 w-full border border-[#0a0a0a]/85">
         <div className="grid grid-cols-1 lg:grid-cols-3">
           {/* The ask */}
           <div className="contact-panel p-7 md:p-10 border-b lg:border-b-0 lg:border-r border-[#0a0a0a]/85 flex flex-col">
@@ -106,19 +137,6 @@ export const ContactSection: React.FC = () => {
               Product work, design systems, and the occasional experiment that has
               no business being in a browser. Tehran time, replies within a day.
             </p>
-
-            {/* Portrait, dissolved into the ground rather than framed on it.
-                Fixed height rather than flex-1: letting it take the remaining
-                space grew the plate past the viewport and pushed the portrait
-                below the fold. */}
-            <div className="relative mt-7 h-[230px] lg:h-[280px]" aria-hidden="true">
-              <img
-                src={CONTACT_PORTRAIT}
-                alt=""
-                loading="lazy"
-                className="portrait-fade absolute inset-0 w-full h-full object-contain object-left-bottom grayscale contrast-[1.3] opacity-80"
-              />
-            </div>
           </div>
 
           {/* Navigation */}
@@ -176,13 +194,15 @@ export const ContactSection: React.FC = () => {
                   onChange={(e) => setFrom(e.target.value)}
                   placeholder="you@studio.com"
                   autoComplete="email"
-                  className="flex-1 bg-transparent border-0 outline-none label placeholder:opacity-50 py-1"
+                  className="flex-1 bg-transparent border-0 outline-none label placeholder:opacity-65 py-1"
                 />
                 <button type="submit" className="label link-underline" data-cursor="active">
                   <EncryptedText text="Send" />
                 </button>
               </div>
-              <p className="label opacity-60 mt-2">Opens your mail app.</p>
+              {/* Kept near-full strength: this sits over the portrait, which
+                  darkens the orange behind it, and at 60% it disappeared. */}
+              <p className="label opacity-85 mt-2">Opens your mail app.</p>
             </form>
 
             <div className="mt-10 pt-6 border-t border-[#0a0a0a]/30">
