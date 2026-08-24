@@ -124,11 +124,13 @@ export const ScrollBackdrop: React.FC = () => {
       const triggers = BOUNDARIES.map(({ trigger, from, to }) =>
         ScrollTrigger.create({
           trigger,
-          // Completes well before the section header reaches the top: the
-          // wipe should read as a quick sweep, not a slow reveal dragged out
-          // across a whole viewport of scroll.
-          start: 'top bottom',
-          end: 'top 30%',
+          // Deliberately late and short. Starting at 'top bottom' meant the
+          // wipe began the instant the outgoing section started moving — the
+          // blocks climbed over a hero that was still full-frame. Waiting
+          // until the incoming section is most of the way up the viewport
+          // keeps the wipe a discrete sweep between two settled states.
+          start: 'top 70%',
+          end: 'top 15%',
           onUpdate: (self) => {
             setBase(palette[from]);
             setColumns(palette[to]);

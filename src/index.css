@@ -353,6 +353,82 @@
   color: var(--color-spot);
 }
 
+/* Row hover: an ink bar wipes across the whole row from the left and the
+   title flips to the spot colour. Used by the numbered lists in About and
+   Tools — on the orange ground this is the only hover state on the page that
+   changes more than one property, which is why the rows read as the primary
+   thing to interact with. */
+.sweep-row {
+  position: relative;
+  isolation: isolate;
+}
+.sweep-row::before {
+  content: "";
+  position: absolute;
+  /* Bleeds past the page gutter so the bar runs edge to edge, the way a
+     printed rule would, rather than stopping at the text column. */
+  left: -1.5rem;
+  right: -1.5rem;
+  top: 0;
+  bottom: 0;
+  z-index: -1;
+  background: var(--color-ink);
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: transform 0.55s var(--ease-page);
+}
+@media (min-width: 768px) {
+  .sweep-row::before {
+    left: -2.5rem;
+    right: -2.5rem;
+  }
+}
+.sweep-row:hover::before,
+.sweep-row:focus-within::before {
+  transform: scaleX(1);
+}
+
+/* On the orange ground the bar is near-black, so everything on top of it has
+   to invert or it vanishes into the bar. */
+.bleed-spot .sweep-row:hover .row-title,
+.bleed-spot .sweep-row:focus-within .row-title {
+  color: var(--color-spot);
+}
+.bleed-spot .sweep-row:hover .sweep-dim,
+.bleed-spot .sweep-row:focus-within .sweep-dim {
+  color: rgba(242, 241, 236, 0.72);
+}
+.bleed-spot .sweep-row:hover .label,
+.bleed-spot .sweep-row:focus-within .label,
+.bleed-spot .sweep-row:hover .index-mark,
+.bleed-spot .sweep-row:focus-within .index-mark {
+  color: rgba(242, 241, 236, 0.6);
+}
+.sweep-row .row-title,
+.sweep-row .label,
+.sweep-row .index-mark,
+.sweep-row .sweep-dim {
+  transition: color 0.45s var(--ease-page);
+}
+
+/* Bordered tags inside a sweeping row: the border has to invert with the
+   text, or it disappears into the bar and the chips lose their shape. */
+.sweep-chip {
+  border-color: rgba(10, 10, 10, 0.3);
+  transition: border-color 0.45s var(--ease-page), opacity 0.5s var(--ease-page),
+    background 0.5s var(--ease-page);
+}
+.sweep-row:hover .sweep-chip,
+.sweep-row:focus-within .sweep-chip {
+  border-color: rgba(242, 241, 236, 0.45);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sweep-row::before {
+    transition: none;
+  }
+}
+
 /* CSS stand-in for the WebGL hero object on phones, which never mount the
    renderer. Two offset radial gradients — a broad body and a tight specular —
    give it the same key-from-upper-left read as the shader. */

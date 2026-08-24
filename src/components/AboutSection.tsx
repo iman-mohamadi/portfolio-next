@@ -181,7 +181,8 @@ export const AboutSection: React.FC = () => {
           {CAPABILITIES.map((cap) => (
             <li
               key={cap.index}
-              className="about-row group border-t border-[#0a0a0a]/28 last:border-b py-7 md:py-9"
+              className="about-row sweep-row group border-t border-[#0a0a0a]/28 last:border-b py-7 md:py-9"
+              tabIndex={0}
             >
               <div className="grid grid-cols-1 md:grid-cols-12 gap-4 md:gap-8 items-baseline">
                 <span className="index-mark md:col-span-1">[{cap.index}]</span>
@@ -190,7 +191,7 @@ export const AboutSection: React.FC = () => {
                   {cap.title}
                 </h3>
 
-                <p className="md:col-span-5 text-sm leading-relaxed opacity-80 text-pretty">
+                <p className="sweep-dim md:col-span-5 text-sm leading-relaxed opacity-80 text-pretty">
                   {cap.body}
                 </p>
 

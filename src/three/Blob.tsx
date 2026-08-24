@@ -12,14 +12,34 @@ ${SIMPLEX_3D}
 uniform float uTime;
 uniform float uDisplace;
 uniform float uScroll;
+uniform float uMorph;
 
 varying vec3 vNormal;
 varying vec3 vViewDir;
 varying float vCrest;
 
+/**
+ * Pushes a point on the sphere out to the face of the enclosing cube, keeping
+ * its direction. For a point at radius R the cube face lies at
+ * R / max(|x|,|y|,|z|) along the same ray, so scaling by that ratio inflates
+ * the sphere into a cube rather than collapsing it toward the centre.
+ */
+vec3 toBox(vec3 p, float t) {
+  float m = max(abs(p.x), max(abs(p.y), abs(p.z)));
+  vec3 boxed = p * (length(p) / max(m, 1e-4));
+  return mix(p, boxed, t);
+}
+
 vec3 displace(vec3 p, vec3 n, out float amount) {
-  amount = snoise(p * 0.62 + vec3(0.0, uTime * 0.22, 0.0)) * uDisplace;
-  return p + n * amount;
+  // The morph happens inside displace() so the finite-difference normals
+  // below sample the morphed surface too — otherwise the cube would keep the
+  // sphere's lighting and read as a flat sticker.
+  vec3 shaped = toBox(p, uMorph);
+  // The cube settles smooth: the noise that gives the blob its churn would
+  // just read as dents on a hard-edged solid.
+  amount =
+    snoise(p * 0.62 + vec3(0.0, uTime * 0.22, 0.0)) * uDisplace * (1.0 - uMorph * 0.82);
+  return shaped + n * amount;
 }
 
 void main() {
@@ -118,6 +138,7 @@ export function Blob({ scrollRef, pointerRef, quality }: BlobProps) {
       uTime: { value: 0 },
       uDisplace: { value: 0.38 },
       uScroll: { value: 0 },
+      uMorph: { value: 0 },
       uOpacity: { value: 1 },
       uBody: { value: colors.spot.clone() },
       uDeep: { value: new THREE.Color('#c2350a') },
@@ -135,6 +156,9 @@ export function Blob({ scrollRef, pointerRef, quality }: BlobProps) {
     if (mat) {
       mat.uniforms.uTime.value += dt;
       mat.uniforms.uScroll.value = scrollRef.current;
+      // Fully a cube by 0.6, so it holds that read for a beat before the
+      // fragment fade takes it out around 0.95.
+      mat.uniforms.uMorph.value = THREE.MathUtils.smoothstep(scrollRef.current, 0.15, 0.6);
       mat.uniforms.uBody.value.copy(colors.spot);
     }
 

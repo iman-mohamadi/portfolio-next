@@ -121,7 +121,7 @@ export const ToolsSection: React.FC = () => {
             return (
               <li
                 key={group.index}
-                className="tools-row border-t border-[#0a0a0a]/28 last:border-b"
+                className="tools-row sweep-row border-t border-[#0a0a0a]/28 last:border-b"
                 onMouseEnter={() => setActive(group.index)}
                 onFocus={() => setActive(group.index)}
               >
@@ -138,7 +138,7 @@ export const ToolsSection: React.FC = () => {
                     <EncryptedText text={group.title} />
                   </h3>
 
-                  <p className="md:col-span-3 text-sm leading-relaxed opacity-75 text-pretty">
+                  <p className="sweep-dim md:col-span-3 text-sm leading-relaxed opacity-75 text-pretty">
                     {group.note}
                   </p>
 
@@ -148,7 +148,7 @@ export const ToolsSection: React.FC = () => {
                     {group.items.map((item) => (
                       <span
                         key={item}
-                        className={`label border border-[#0a0a0a]/30 px-2 py-1 whitespace-nowrap transition-[opacity,background] duration-500 ${
+                        className={`label sweep-chip border px-2 py-1 whitespace-nowrap transition-[opacity,background] duration-500 ${
                           isActive ? 'opacity-100 bg-[#0a0a0a]/8' : 'opacity-45'
                         }`}
                       >
