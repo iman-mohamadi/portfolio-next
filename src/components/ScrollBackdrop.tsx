@@ -9,16 +9,24 @@ interface Boundary {
   trigger: string;
   from: ColorKey;
   to: ColorKey;
+  /** Override the default window. Must stay in scroll order across the list. */
+  start?: string;
+  end?: string;
 }
 
-// Scroll order of the page: paper (hero) → spot (about/tools) → paper (work)
-// → spot (contact) → paper (footer). Each entry is the section whose arrival
-// drives the next handoff.
+// Scroll order of the page: paper (hero + statement) → spot (about/tools) →
+// paper (work) → an ink curtain across the quote → spot (contact + footer).
+// Each entry is the section whose arrival drives that handoff, and they must
+// stay in scroll order — `settle()` below resolves the current ground by
+// taking the last boundary that has started.
 const BOUNDARIES: Boundary[] = [
   { trigger: '#about', from: 'paper', to: 'spot' },
   { trigger: '#work', from: 'spot', to: 'paper' },
+  // The quote arrives behind an ink curtain that then lifts, so the ground
+  // flashes black between two light sections instead of never changing.
+  { trigger: '#quote', from: 'paper', to: 'ink', start: 'top 88%', end: 'top 48%' },
+  { trigger: '#quote', from: 'ink', to: 'paper', start: 'top 44%', end: 'top 4%' },
   { trigger: '#contact', from: 'paper', to: 'spot' },
-  { trigger: 'footer', from: 'spot', to: 'paper' },
 ];
 
 /** Widest a single block may get. Below this the grid stops subdividing. */
@@ -121,7 +129,7 @@ export const ScrollBackdrop: React.FC = () => {
       setBase(palette.paper);
       setColumns(palette.spot);
 
-      const triggers = BOUNDARIES.map(({ trigger, from, to }) =>
+      const triggers = BOUNDARIES.map(({ trigger, from, to, start, end }) =>
         ScrollTrigger.create({
           trigger,
           // Deliberately late and short. Starting at 'top bottom' meant the
@@ -129,8 +137,8 @@ export const ScrollBackdrop: React.FC = () => {
           // blocks climbed over a hero that was still full-frame. Waiting
           // until the incoming section is most of the way up the viewport
           // keeps the wipe a discrete sweep between two settled states.
-          start: 'top 70%',
-          end: 'top 15%',
+          start: start ?? 'top 70%',
+          end: end ?? 'top 15%',
           // Measured last, after any pin has inserted its spacer and settled
           // the real document positions these boundaries depend on.
           refreshPriority: -1,

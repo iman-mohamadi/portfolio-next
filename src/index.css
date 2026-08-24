@@ -353,6 +353,32 @@
   color: var(--color-spot);
 }
 
+/* Bordered plate with solid marks at its corners — the crop marks a printer
+   would set around a trimmed panel. Drawn with a repeating background rather
+   than four elements so the marks cannot drift out of the corners. */
+.plate-frame {
+  position: relative;
+}
+.plate-frame::before,
+.plate-frame::after {
+  content: "";
+  position: absolute;
+  left: -4px;
+  right: -4px;
+  height: 9px;
+  pointer-events: none;
+  background-image: linear-gradient(#0a0a0a, #0a0a0a), linear-gradient(#0a0a0a, #0a0a0a);
+  background-size: 9px 9px;
+  background-repeat: no-repeat;
+  background-position: left center, right center;
+}
+.plate-frame::before {
+  top: -4px;
+}
+.plate-frame::after {
+  bottom: -4px;
+}
+
 /* Softens a portrait into whatever ground is behind it, with no dependence on
    a blend mode reaching a backdrop in another stacking context. The subject is
    toward the upper right of the frame, so the falloff is centred there. */

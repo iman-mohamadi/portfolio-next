@@ -11,6 +11,7 @@ import { HeroStatement } from './components/HeroStatement';
 import { AboutSection } from './components/AboutSection';
 import { WorkSection } from './components/WorkSection';
 import { ToolsSection } from './components/ToolsSection';
+import { QuoteSection } from './components/QuoteSection';
 import { ContactSection } from './components/ContactSection';
 import { Footer } from './components/Footer';
 import { setAudioEnabled } from './utils/audioSynth';
@@ -104,6 +105,7 @@ export default function App() {
         <AboutSection />
         <ToolsSection />
         <WorkSection />
+        <QuoteSection />
         <ContactSection />
       </main>
 

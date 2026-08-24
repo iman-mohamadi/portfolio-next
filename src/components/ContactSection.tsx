@@ -1,30 +1,36 @@
 import React, { useRef, useState } from 'react';
 import { gsap, useGSAP } from '../lib/gsap';
 import { EncryptedText } from './motion/EncryptedText';
+import { useSmoothScroll } from '../providers/SmoothScrollProvider';
 import { useReducedMotion } from '../hooks/useReducedMotion';
 import { playSfx } from '../utils/audioSynth';
 import { CONTACT_PORTRAIT } from '../content/media';
 
 const EMAIL = 'im.enzo.021@gmail.com';
 
+const LINKS = [
+  { label: 'About', id: 'about' },
+  { label: 'Tools', id: 'tools' },
+  { label: 'Work', id: 'work' },
+  { label: "Let's create", id: 'contact' },
+];
+
 const CHANNELS = [
-  { label: 'GitHub', handle: '@iman-mohamadi', href: 'https://github.com/iman-mohamadi' },
-  {
-    label: 'LinkedIn',
-    handle: 'iman-mohammadiii',
-    href: 'https://www.linkedin.com/in/iman-mohammadiii/',
-  },
-  { label: 'Instagram', handle: '@im_mhmdi', href: 'https://instagram.com/im_mhmdi' },
+  { label: 'GitHub', href: 'https://github.com/iman-mohamadi' },
+  { label: 'LinkedIn', href: 'https://www.linkedin.com/in/iman-mohammadiii/' },
+  { label: 'Instagram', href: 'https://instagram.com/im_mhmdi' },
 ];
 
 /**
- * The sign-off: the full-bleed orange returns, the portrait is blended into it
- * rather than framed, and the email is set at display scale because it is the
- * only action on the page that matters.
+ * The sign-off, laid out as a bordered three-panel plate on the orange: the
+ * ask on the left with the portrait under it, navigation in the middle, and
+ * the ways to reach me on the right.
  */
 export const ContactSection: React.FC = () => {
   const sectionRef = useRef<HTMLElement>(null);
   const [copied, setCopied] = useState(false);
+  const [from, setFrom] = useState('');
+  const { scrollTo } = useSmoothScroll();
   const reduced = useReducedMotion();
 
   const handleCopy = async () => {
@@ -35,9 +41,20 @@ export const ContactSection: React.FC = () => {
       window.setTimeout(() => setCopied(false), 2200);
     } catch {
       // Clipboard is permission-gated and blocked outside a secure context.
-      // The mailto link beside this is the fallback, so there is nothing to
-      // recover from — just leave the label alone.
+      // The address is written out in full beside this, so there is nothing
+      // to recover from.
     }
+  };
+
+  // No backend to post to, so this hands off to the visitor's mail client
+  // with the reply address already filled in rather than pretending to send.
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const reply = from.trim();
+    const body = reply ? `\n\n—\nReply to: ${reply}` : '';
+    window.location.href = `mailto:${EMAIL}?subject=${encodeURIComponent(
+      'Project enquiry'
+    )}&body=${encodeURIComponent(body)}`;
   };
 
   useGSAP(
@@ -45,31 +62,20 @@ export const ContactSection: React.FC = () => {
       if (reduced) return;
 
       gsap.from('.contact-line', {
-        yPercent: 105,
-        duration: 1.2,
+        yPercent: 104,
+        duration: 1.1,
         ease: 'arch',
-        stagger: 0.1,
+        stagger: 0.09,
         scrollTrigger: { trigger: sectionRef.current, start: 'top 68%', once: true },
       });
 
-      gsap.from('.contact-meta', {
+      gsap.from('.contact-panel', {
         opacity: 0,
-        y: 22,
+        y: 24,
         duration: 0.9,
         ease: 'arch',
-        stagger: 0.07,
-        scrollTrigger: { trigger: sectionRef.current, start: 'top 55%', once: true },
-      });
-
-      gsap.to('.contact-portrait', {
-        yPercent: -10,
-        ease: 'none',
-        scrollTrigger: {
-          trigger: sectionRef.current,
-          start: 'top bottom',
-          end: 'bottom top',
-          scrub: true,
-        },
+        stagger: 0.1,
+        scrollTrigger: { trigger: sectionRef.current, start: 'top 60%', once: true },
       });
     },
     { scope: sectionRef, dependencies: [reduced] }
@@ -80,98 +86,125 @@ export const ContactSection: React.FC = () => {
       ref={sectionRef}
       id="contact"
       aria-label="Contact"
-      className="bleed-spot relative z-20 overflow-hidden pt-24 md:pt-36 pb-16 md:pb-20 px-6 md:px-10"
+      className="bleed-spot relative z-20 flex items-center px-6 md:px-10 py-20 md:py-24"
     >
-      {/* Portrait dissolved into the ground rather than framed on it.
-          Deliberately a mask and not a blend mode: the ground is painted by
-          the fixed ScrollBackdrop layer, and this section opens its own
-          stacking context, so `mix-blend-screen` had nothing to blend against
-          and the plate re-appeared as a hard-edged rectangle. A mask needs no
-          backdrop and works on whatever colour is behind it. */}
-      <div
-        className="contact-portrait pointer-events-none absolute right-0 bottom-0 w-[62%] sm:w-[46%] lg:w-[34%] max-w-[560px] opacity-45"
-        aria-hidden="true"
-      >
-        <img
-          src={CONTACT_PORTRAIT}
-          alt=""
-          loading="lazy"
-          className="portrait-fade w-full h-auto object-contain grayscale contrast-[1.35]"
-        />
-      </div>
+      <div className="plate-frame w-full border border-[#0a0a0a]/85">
+        <div className="grid grid-cols-1 lg:grid-cols-3">
+          {/* The ask */}
+          <div className="contact-panel p-7 md:p-10 border-b lg:border-b-0 lg:border-r border-[#0a0a0a]/85 flex flex-col">
+            {/* Sized so each authored line actually fits the column — at 4.6vw
+                "Let's build" wrapped and the three lines became five. */}
+            <h2 className="display text-[clamp(1.6rem,3vw,2.5rem)] leading-[0.92] mb-5">
+              {["Let's build", 'your next', 'thing.'].map((line) => (
+                <span key={line} className="split-line-mask block">
+                  <span className="contact-line block">{line}</span>
+                </span>
+              ))}
+            </h2>
 
-      <div className="relative z-10">
-        <div className="flex items-center gap-4 mb-14 md:mb-20">
-          <span className="label">[ Contact ]</span>
-          <span className="rule-h flex-1" />
-          <span className="label flex items-center gap-2">
-            <span className="w-1.5 h-1.5 bg-[#0a0a0a]" aria-hidden="true" />
-            Available for 2026
-          </span>
-        </div>
+            <p className="label leading-relaxed max-w-[22rem]">
+              Product work, design systems, and the occasional experiment that has
+              no business being in a browser. Tehran time, replies within a day.
+            </p>
 
-        <h2 className="display text-[clamp(2.75rem,11.5vw,11rem)] mb-12 md:mb-16">
-          <span className="split-line-mask block">
-            <span className="contact-line block">Let&apos;s</span>
-          </span>
-          <span className="split-line-mask block">
-            <span className="contact-line block">create</span>
-          </span>
-        </h2>
+            {/* Portrait, dissolved into the ground rather than framed on it.
+                Fixed height rather than flex-1: letting it take the remaining
+                space grew the plate past the viewport and pushed the portrait
+                below the fold. */}
+            <div className="relative mt-7 h-[230px] lg:h-[280px]" aria-hidden="true">
+              <img
+                src={CONTACT_PORTRAIT}
+                alt=""
+                loading="lazy"
+                className="portrait-fade absolute inset-0 w-full h-full object-contain object-left-bottom grayscale contrast-[1.3] opacity-80"
+              />
+            </div>
+          </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-x-10 gap-y-12 items-start">
-          <div className="lg:col-span-7">
-            <p className="contact-meta label mb-4">Write to me</p>
+          {/* Navigation */}
+          <div className="contact-panel p-7 md:p-10 border-b lg:border-b-0 lg:border-r border-[#0a0a0a]/85">
+            <h3 className="font-display font-bold text-xl mb-7">Links</h3>
+            <ul className="space-y-3">
+              {LINKS.map(({ label, id }) => (
+                <li key={label}>
+                  <button
+                    onClick={() => scrollTo(`#${id}`)}
+                    className="label link-underline"
+                    data-cursor="active"
+                  >
+                    <EncryptedText text={label} />
+                  </button>
+                </li>
+              ))}
+            </ul>
 
-            <a
-              href={`mailto:${EMAIL}`}
-              className="contact-meta block font-mono-tech text-[clamp(1rem,3.4vw,2.1rem)] tracking-tight break-all link-underline"
-              data-cursor="active"
-            >
-              {EMAIL}
-            </a>
+            <h3 className="label mt-12 mb-3">Availability</h3>
+            <p className="label flex items-center gap-2">
+              <span className="w-1.5 h-1.5 bg-[#0a0a0a]" aria-hidden="true" />
+              Open for 2026
+            </p>
+          </div>
 
-            <div className="contact-meta flex flex-wrap items-center gap-3 mt-8">
-              <a href={`mailto:${EMAIL}`} className="btn-box" data-cursor="active">
-                <span className="w-1.5 h-1.5 bg-[#0a0a0a]" aria-hidden="true" />
-                <EncryptedText text="Start a project" />
-              </a>
-              <button onClick={handleCopy} className="btn-box" data-cursor="active">
+          {/* Reach */}
+          <div className="contact-panel p-7 md:p-10">
+            <h3 className="font-display font-bold text-xl mb-7">Contact</h3>
+            <ul className="space-y-3">
+              {CHANNELS.map(({ label, href }) => (
+                <li key={label}>
+                  <a
+                    href={href}
+                    target="_blank"
+                    rel="noreferrer noopener"
+                    className="label link-underline"
+                    data-cursor="active"
+                  >
+                    <EncryptedText text={label} />
+                  </a>
+                </li>
+              ))}
+            </ul>
+
+            <form onSubmit={handleSubmit} className="mt-12">
+              <label htmlFor="reply-to" className="label block mb-2">
+                Your email
+              </label>
+              <div className="flex items-center gap-3 border-b border-[#0a0a0a]/60 pb-2">
+                <input
+                  id="reply-to"
+                  type="email"
+                  value={from}
+                  onChange={(e) => setFrom(e.target.value)}
+                  placeholder="you@studio.com"
+                  autoComplete="email"
+                  className="flex-1 bg-transparent border-0 outline-none label placeholder:opacity-50 py-1"
+                />
+                <button type="submit" className="label link-underline" data-cursor="active">
+                  <EncryptedText text="Send" />
+                </button>
+              </div>
+              <p className="label opacity-60 mt-2">Opens your mail app.</p>
+            </form>
+
+            <div className="mt-10 pt-6 border-t border-[#0a0a0a]/30">
+              {/* Wrapper, because `.link-underline` sets inline-block and wins
+                  over the utility — without it the button rides up onto the
+                  same line and overlaps the address. */}
+              <div>
+                <a
+                  href={`mailto:${EMAIL}`}
+                  className="font-mono-tech text-[clamp(0.8rem,1.5vw,1.05rem)] break-all link-underline"
+                  data-cursor="active"
+                >
+                  {EMAIL}
+                </a>
+              </div>
+              <button onClick={handleCopy} className="btn-box mt-4" data-cursor="active">
                 {copied ? 'Copied' : 'Copy address'}
               </button>
               <span className="sr-only" role="status" aria-live="polite">
                 {copied ? 'Email address copied to clipboard' : ''}
               </span>
             </div>
-
-            <p className="contact-meta max-w-[32rem] mt-10 text-sm md:text-base leading-relaxed opacity-80">
-              Open to product work, design-system builds, and the occasional
-              experiment that has no business being in a browser. Tehran time,
-              flexible hours, replies within a day.
-            </p>
-          </div>
-
-          {/* Channels */}
-          <div className="lg:col-span-5">
-            <p className="contact-meta label mb-4">Elsewhere</p>
-            <ul>
-              {CHANNELS.map((channel) => (
-                <li key={channel.label} className="contact-meta border-t border-[#0a0a0a]/28 last:border-b">
-                  <a
-                    href={channel.href}
-                    target="_blank"
-                    rel="noreferrer noopener"
-                    className="group flex items-baseline justify-between gap-6 py-5"
-                    data-cursor="active"
-                  >
-                    <span className="row-title transition-transform duration-500 ease-out md:group-hover:translate-x-2">
-                      <EncryptedText text={channel.label} />
-                    </span>
-                    <span className="label whitespace-nowrap">{channel.handle}</span>
-                  </a>
-                </li>
-              ))}
-            </ul>
           </div>
         </div>
       </div>

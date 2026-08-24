@@ -29,13 +29,13 @@ export const Footer: React.FC = () => {
   );
 
   return (
-    <footer ref={footerRef} className="relative z-20 overflow-hidden">
-      <div className="px-6 md:px-10 pt-10 pb-6 flex flex-col sm:flex-row justify-between gap-4 label text-ink-faint">
+    <footer ref={footerRef} className="bleed-spot relative z-20 overflow-hidden">
+      <div className="px-6 md:px-10 pt-10 pb-6 flex flex-col sm:flex-row justify-between gap-4 label">
         <span>© {new Date().getFullYear()} Iman Mohammadi</span>
         <span>Set in Archivo &amp; JetBrains Mono</span>
         <button
           onClick={() => scrollTo('#hero')}
-          className="text-left sm:text-right text-ink link-underline"
+          className="text-left sm:text-right link-underline"
           data-cursor="active"
         >
           <EncryptedText text="Back to top ↑" />
@@ -47,7 +47,7 @@ export const Footer: React.FC = () => {
           large enough to fill the width alongside the runner. */}
       <div className="split-line-mask px-2">
         <div
-          className="footer-wordmark flex items-end gap-[2vw] text-ink select-none pointer-events-none translate-y-[0.14em]"
+          className="footer-wordmark flex items-end gap-[2vw] text-[#0a0a0a] select-none pointer-events-none translate-y-[0.14em]"
           aria-hidden="true"
         >
           {/* The sprite is sized in absolute pixels, so at a fixed scale it
