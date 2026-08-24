@@ -4,6 +4,7 @@ import { ScrollTrigger } from './lib/gsap';
 import { Preloader } from './components/Preloader';
 import { CustomCursor } from './components/CustomCursor';
 import { RegistrationMarks } from './components/RegistrationMarks';
+import { ScrollBackdrop } from './components/ScrollBackdrop';
 import { Navbar } from './components/Navbar';
 import { HeroSection } from './components/HeroSection';
 import { AboutSection } from './components/AboutSection';
@@ -76,6 +77,8 @@ export default function App() {
       <a href="#main" className="skip-link bg-ink text-paper px-5 py-3 label">
         Skip to content
       </a>
+
+      <ScrollBackdrop />
 
       <Preloader onComplete={handleLoaded} />
 

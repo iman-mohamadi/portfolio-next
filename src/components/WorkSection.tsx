@@ -76,14 +76,16 @@ const PROJECTS: WorkProject[] = [
 ];
 
 /**
- * Selected work as an index rather than a gallery: numbered rows with the
- * preview held in a single sticky plate that cross-fades to whichever row is
- * active. On touch and narrow screens each row carries its own image instead,
- * since there is no hover to drive the swap.
+ * Selected work as a deck rather than a list: each project is a full-bleed
+ * card that sticks to the top of the frame and holds there while the next one
+ * scrolls up to cover it, so the projects physically stack as you go — the
+ * previous card stays put and just gets buried under the next, instead of
+ * sliding away. A light scale/dim on the outgoing card as the next one
+ * arrives is the only extra motion; the stacking itself is plain
+ * `position: sticky`, which needs no scroll-jacking to work.
  */
 export const WorkSection: React.FC = () => {
   const sectionRef = useRef<HTMLElement>(null);
-  const [activeKey, setActiveKey] = useState<ProjectKey>(PROJECTS[0].key);
   const [openModal, setOpenModal] = useState<ProjectKey | null>(null);
   // Once a modal has been opened it stays mounted, so its close animation can
   // finish and reopening is instant.
@@ -99,8 +101,6 @@ export const WorkSection: React.FC = () => {
 
   useGSAP(
     () => {
-      if (reduced) return;
-
       gsap.from('.work-line', {
         yPercent: 105,
         duration: 1.1,
@@ -108,13 +108,23 @@ export const WorkSection: React.FC = () => {
         scrollTrigger: { trigger: sectionRef.current, start: 'top 72%', once: true },
       });
 
-      gsap.from('.work-row', {
-        opacity: 0,
-        y: 30,
-        duration: 0.9,
-        ease: 'arch',
-        stagger: 0.09,
-        scrollTrigger: { trigger: '.work-rows', start: 'top 84%', once: true },
+      if (reduced) return;
+
+      // Depth cue: as the next card's wrapper scrolls up to cover the current
+      // one, the current card eases back and dims — it reads as a card being
+      // laid on a table rather than a hard cut to the next.
+      const wraps = gsap.utils.toArray<HTMLElement>('.work-card-wrap');
+      wraps.forEach((wrap, i) => {
+        const next = wraps[i + 1];
+        const inner = wrap.querySelector('.work-card-inner');
+        if (!next || !inner) return;
+
+        gsap.to(inner, {
+          scale: 0.92,
+          filter: 'brightness(0.55)',
+          ease: 'none',
+          scrollTrigger: { trigger: next, start: 'top bottom', end: 'top top', scrub: true },
+        });
       });
     },
     { scope: sectionRef, dependencies: [reduced] }
@@ -126,7 +136,7 @@ export const WorkSection: React.FC = () => {
         ref={sectionRef}
         id="work"
         aria-label="Selected work"
-        className="relative z-20 bg-paper pt-24 md:pt-36 pb-24 md:pb-32 px-6 md:px-10"
+        className="relative z-20 pt-24 md:pt-36 px-6 md:px-10"
       >
         <div className="flex items-center gap-4 mb-12 md:mb-16">
           <span className="label text-ink">[ Work ]</span>
@@ -141,107 +151,87 @@ export const WorkSection: React.FC = () => {
             </span>
           </h2>
           <p className="lg:col-span-4 max-w-[28rem] text-sm md:text-base text-ink-soft leading-relaxed lg:pb-4">
-            Three projects that between them cover most of what I do — a system,
-            a platform, and a renderer.
+            Three projects, stacked in scroll order — a system, a platform, and
+            a renderer.
           </p>
         </div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-x-10 gap-y-12 items-start">
-          {/* Sticky preview plate. Every image is mounted and cross-faded, so
-              switching rows never waits on a decode. */}
-          <div className="hidden lg:block lg:col-span-5 lg:sticky lg:top-28">
-            <div className="relative aspect-[4/5] border border-ink/25 bg-paper-deep overflow-hidden">
-              {PROJECTS.map((project) => (
-                <img
-                  key={project.key}
-                  src={project.image}
-                  alt={`${project.title} interface`}
-                  loading="lazy"
-                  aria-hidden={project.key !== activeKey}
-                  className={`absolute inset-0 w-full h-full object-cover grayscale contrast-[1.2] transition-opacity duration-700 ease-out ${
-                    project.key === activeKey ? 'opacity-100' : 'opacity-0'
-                  }`}
-                />
-              ))}
-              <span className="absolute left-0 bottom-0 label bg-spot text-on-spot px-3 py-2">
-                {PROJECTS.find((p) => p.key === activeKey)?.discipline}
-              </span>
-            </div>
-          </div>
-
-          {/* Rows */}
-          <div className="work-rows lg:col-span-7">
-            <ul>
-              {PROJECTS.map((project) => (
-                <li
-                  key={project.key}
-                  className="work-row group border-t border-rule last:border-b"
-                  onMouseEnter={() => setActiveKey(project.key)}
-                  onFocus={() => setActiveKey(project.key)}
-                >
-                  <div className="py-8 md:py-10">
-                    <div className="flex items-baseline justify-between gap-6 mb-5">
-                      <span className="index-mark">[{project.index}]</span>
-                      <span className="label text-ink-faint">
-                        {project.stack} — {project.year}
-                      </span>
-                    </div>
-
-                    <button
-                      onClick={() => open(project.key)}
-                      className="block text-left w-full"
-                      data-cursor="active"
-                      data-cursor-text="OPEN"
-                      aria-label={`${project.title} — ${project.cta}`}
-                    >
-                      <h3 className="display text-[clamp(2.25rem,6vw,4.5rem)] text-ink transition-transform duration-500 ease-out md:group-hover:translate-x-2">
-                        {project.title}
-                      </h3>
-                    </button>
-
-                    {/* Narrow screens have no hover, so the plate rides with
-                        the row instead of sitting in a sticky column. */}
-                    <div className="lg:hidden mt-6 aspect-[16/10] border border-ink/25 bg-paper-deep overflow-hidden">
-                      <img
-                        src={project.image}
-                        alt={`${project.title} interface`}
-                        loading="lazy"
-                        className="w-full h-full object-cover grayscale contrast-[1.2]"
-                      />
-                    </div>
-
-                    <p className="mt-6 max-w-[34rem] text-sm md:text-base text-ink-soft leading-relaxed text-pretty">
-                      {project.summary}
-                    </p>
-
-                    <button
-                      onClick={() => open(project.key)}
-                      className="btn-box mt-7"
-                      data-cursor="active"
-                    >
-                      <span className="w-1.5 h-1.5 bg-spot" aria-hidden="true" />
-                      <EncryptedText text={project.cta} />
-                    </button>
-                  </div>
-                </li>
-              ))}
-            </ul>
-
-            <div className="mt-12 flex flex-wrap items-center gap-4">
-              <span className="label text-ink-faint">More on</span>
-              <a
-                href="https://github.com/iman-mohamadi"
-                target="_blank"
-                rel="noreferrer noopener"
-                className="btn-box"
-                data-cursor="active"
-              >
-                <EncryptedText text="GitHub" />
-              </a>
-            </div>
-          </div>
-        </div>
       </section>
+
+      {/* The stack. Each wrapper is taller than the viewport so its card has
+          room to hold at the top before the next wrapper's turn arrives. */}
+      <div className="relative z-20">
+        {PROJECTS.map((project, i) => (
+          <div key={project.key} className="work-card-wrap relative h-[160svh]">
+            <div
+              className="work-card-inner sticky top-0 h-[100svh] w-full origin-top overflow-hidden"
+              style={{ zIndex: i + 1 }}
+            >
+              <img
+                src={project.image}
+                alt={`${project.title} interface`}
+                loading="lazy"
+                className="absolute inset-0 w-full h-full object-cover grayscale contrast-[1.15]"
+              />
+              <div
+                className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/35 to-black/10"
+                aria-hidden="true"
+              />
+
+              <div className="relative z-10 h-full flex flex-col justify-between px-6 md:px-10 py-8 md:py-12 max-w-[1440px] mx-auto">
+                <div className="flex items-center justify-between">
+                  <span className="label text-[#f2f1ec]/70">[{project.index}]</span>
+                  <span className="label text-[#f2f1ec]/70">
+                    {project.stack} — {project.year}
+                  </span>
+                </div>
+
+                <div>
+                  <p className="label text-spot mb-4">{project.discipline}</p>
+
+                  <button
+                    onClick={() => open(project.key)}
+                    className="block text-left"
+                    data-cursor="active"
+                    data-cursor-text="OPEN"
+                    aria-label={`${project.title} — ${project.cta}`}
+                  >
+                    <h3 className="display text-[clamp(2.75rem,9vw,8rem)] leading-[0.86] text-[#f2f1ec] mb-6">
+                      {project.title}
+                    </h3>
+                  </button>
+
+                  <p className="max-w-[36rem] text-sm md:text-base text-[#f2f1ec]/80 leading-relaxed mb-8 text-pretty">
+                    {project.summary}
+                  </p>
+
+                  <button
+                    onClick={() => open(project.key)}
+                    className="btn-box"
+                    style={{ borderColor: '#f2f1ec', color: '#f2f1ec' }}
+                    data-cursor="active"
+                  >
+                    <span className="w-1.5 h-1.5 bg-spot" aria-hidden="true" />
+                    <EncryptedText text={project.cta} />
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <div className="relative z-20 px-6 md:px-10 py-12 flex flex-wrap items-center gap-4">
+        <span className="label text-ink-faint">More on</span>
+        <a
+          href="https://github.com/iman-mohamadi"
+          target="_blank"
+          rel="noreferrer noopener"
+          className="btn-box"
+          data-cursor="active"
+        >
+          <EncryptedText text="GitHub" />
+        </a>
+      </div>
 
       <Suspense fallback={null}>
         {mounted.map((key) => {

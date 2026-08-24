@@ -95,8 +95,16 @@ export default function HeroCanvas() {
       start: 0,
       end: 'max',
       onUpdate: (self) => {
+        const visible = self.scroll() < window.innerHeight * 1.3;
         // React bails out when the value is unchanged, so this is cheap.
-        setActive(self.scroll() < window.innerHeight * 1.3);
+        setActive(visible);
+        // Belt and suspenders on top of the shader's own fade: `frameloop:
+        // 'never'` freezes the canvas on its last drawn frame rather than
+        // clearing it, so anything short of full transparency at that instant
+        // would otherwise sit composited over every section below the hero.
+        if (rootRef.current) {
+          rootRef.current.style.visibility = visible ? 'visible' : 'hidden';
+        }
       },
     });
 

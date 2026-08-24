@@ -26,7 +26,7 @@ export const Footer: React.FC = () => {
   );
 
   return (
-    <footer ref={footerRef} className="relative z-20 bg-paper overflow-hidden">
+    <footer ref={footerRef} className="relative z-20 overflow-hidden">
       <div className="px-6 md:px-10 pt-10 pb-6 flex flex-col sm:flex-row justify-between gap-4 label text-ink-faint">
         <span>© {new Date().getFullYear()} Iman Mohammadi</span>
         <span>Set in Archivo &amp; JetBrains Mono</span>

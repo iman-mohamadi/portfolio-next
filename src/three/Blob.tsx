@@ -86,7 +86,11 @@ void main() {
   // Crests catch a touch more light, so the surface undulation is legible.
   color += uSheen * smoothstep(0.35, 1.0, vCrest) * 0.08;
 
-  gl_FragColor = vec4(color, uOpacity * (1.0 - uScroll * 0.85));
+  // Must reach exactly 0 by uScroll 1: the render gate in HeroCanvas freezes
+  // the frameloop rather than unmounting the canvas, so whatever alpha this
+  // holds at that point is what stays composited over every section for the
+  // rest of the page.
+  gl_FragColor = vec4(color, uOpacity * max(0.0, 1.0 - uScroll * 1.05));
   #include <colorspace_fragment>
 }
 `;

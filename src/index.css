@@ -234,9 +234,11 @@
   background: var(--color-ink);
 }
 
-/* Full-bleed orange block. Content on it flips to ink, never to white. */
+/* Full-bleed orange block. Content on it flips to ink, never to white.
+   No background of its own — ScrollBackdrop paints the actual colour behind
+   every section so the paper↔spot handoff can blend across a scroll instead
+   of cutting hard at this element's edge. */
 .bleed-spot {
-  background: var(--color-spot);
   color: var(--color-on-spot);
 }
 .bleed-spot .label,
