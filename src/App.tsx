@@ -7,6 +7,7 @@ import { RegistrationMarks } from './components/RegistrationMarks';
 import { ScrollBackdrop } from './components/ScrollBackdrop';
 import { Navbar } from './components/Navbar';
 import { HeroSection } from './components/HeroSection';
+import { HeroStatement } from './components/HeroStatement';
 import { AboutSection } from './components/AboutSection';
 import { WorkSection } from './components/WorkSection';
 import { ToolsSection } from './components/ToolsSection';
@@ -99,6 +100,7 @@ export default function App() {
 
       <main id="main" className="relative z-10 w-full">
         <HeroSection ready={ready} />
+        <HeroStatement />
         <AboutSection />
         <ToolsSection />
         <WorkSection />

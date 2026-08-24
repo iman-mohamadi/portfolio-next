@@ -72,10 +72,15 @@ export default function HeroCanvas() {
     const hero = document.getElementById('hero');
     if (!hero) return;
 
+    // Spans the hero AND the statement panel below it — two viewports — so
+    // the object has room to finish its morph while still on screen. Tying
+    // this to the hero alone meant the whole blob-to-cube transition was
+    // spent on a hero that was simultaneously scrolling away.
     const trigger = ScrollTrigger.create({
       trigger: hero,
       start: 'top top',
-      end: 'bottom top',
+      end: () => `+=${window.innerHeight * 2}`,
+      invalidateOnRefresh: true,
       onUpdate: (self) => {
         scrollRef.current = self.progress;
       },
@@ -95,7 +100,7 @@ export default function HeroCanvas() {
       start: 0,
       end: 'max',
       onUpdate: (self) => {
-        const visible = self.scroll() < window.innerHeight * 1.3;
+        const visible = self.scroll() < window.innerHeight * 2.3;
         // React bails out when the value is unchanged, so this is cheap.
         setActive(visible);
         // Belt and suspenders on top of the shader's own fade: `frameloop:
