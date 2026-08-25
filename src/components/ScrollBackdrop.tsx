@@ -8,10 +8,18 @@ interface Boundary {
   trigger: string;
   from: ColorKey;
   to: ColorKey;
-  /** Override the default window. Must stay in scroll order across the list. */
-  start?: string;
-  end?: string;
+  /** Which edge of the trigger drives the window. Defaults to its top. */
+  edge?: 'top' | 'bottom';
+  /**
+   * Viewport fractions, measured down from the top of the viewport, that the
+   * edge crosses over the course of the dissolve. Deliberately late and short,
+   * so the dissolve is a discrete sweep between two settled states rather than
+   * a slow drizzle. Must stay in scroll order across the list.
+   */
+  window?: [number, number];
 }
+
+const DEFAULT_WINDOW: [number, number] = [0.7, 0.2];
 
 // Scroll order of the page: paper (hero + statement) → spot (about/tools) →
 // paper (work + quote) → spot (contact + footer). The quote section paints its
@@ -21,11 +29,22 @@ interface Boundary {
 const BOUNDARIES: Boundary[] = [
   { trigger: '#about', from: 'paper', to: 'spot' },
   { trigger: '#work', from: 'spot', to: 'paper' },
-  { trigger: '#contact', from: 'paper', to: 'spot' },
+  // Driven by the quote's bottom edge rather than contact's own top. The quote
+  // paints a full-screen cell grid of its own that is still dissolving as
+  // contact comes up, and two pixel grids dissolving over each other at once
+  // reads as noise rather than as one handoff. 0.55 is exactly where the
+  // quote's grid finishes, so the two meet instead of overlapping.
+  { trigger: '#quote', from: 'paper', to: 'spot', edge: 'bottom', window: [0.55, 0.3] },
 ];
 
 /** Grid columns, matching the reference's section transition. */
 const COLS = 6;
+
+/** Clearance left below a boundary's end, in px, so it never needs the last pixel. */
+const END_MARGIN = 24;
+
+/** Shortest a squeezed boundary may get before it stops reading as a sweep. */
+const MIN_SPAN = 120;
 
 /**
  * The page's background, and the pixel-cell dissolve that changes it.
@@ -145,40 +164,75 @@ export const ScrollBackdrop: React.FC = () => {
       setBase(palette.paper);
       setForeground('paper');
 
-      const triggers = BOUNDARIES.map(({ trigger, from, to, start, end }) =>
+      // Absolute scroll offset at which the boundary's driving edge sits
+      // `frac` of the way down the viewport. Scroll-invariant, so it is safe to
+      // call at any point during a refresh.
+      const offsetFor = (b: Boundary, frac: number) => {
+        const el = document.querySelector(b.trigger);
+        if (!el) return 0;
+        const rect = el.getBoundingClientRect();
+        const edge = b.edge === 'bottom' ? rect.bottom : rect.top;
+        return edge + window.scrollY - window.innerHeight * frac;
+      };
+
+      // The window, pulled in so it always finishes at a scroll position that
+      // can actually be reached. The last boundary sits near the foot of the
+      // document, where its natural window runs off the end — uncorrected, the
+      // dissolve never reaches 1, `onLeave` never fires, and the bottom of the
+      // page sits permanently stranded mid-dissolve, a patchwork of both
+      // grounds instead of a settled one.
+      const windowFor = (b: Boundary) => {
+        const [open, close] = b.window ?? DEFAULT_WINDOW;
+        let start = offsetFor(b, open);
+        let end = offsetFor(b, close);
+        // Land a hair short of the last scrollable pixel. Smooth scrolling can
+        // settle a fraction under the true bottom, and a window that needs that
+        // final pixel would strand the last cell or two unflipped.
+        const limit = ScrollTrigger.maxScroll(window) - END_MARGIN;
+        if (end > limit) {
+          // Shorten the window rather than sliding it back: `start` is placed
+          // where the previous full-screen overlay finishes clearing, so moving
+          // it earlier would put two dissolves on screen at once. A shorter
+          // sweep still resolves; an overlapping one just reads as noise.
+          end = limit;
+          start = Math.min(start, end - MIN_SPAN);
+        }
+        return { start: Math.max(0, start), end: Math.max(1, end) };
+      };
+
+      const triggers = BOUNDARIES.map((b) =>
         ScrollTrigger.create({
-          trigger,
-          // Deliberately late and short, so the dissolve is a discrete sweep
-          // between two settled states rather than a slow drizzle.
-          start: start ?? 'top 70%',
-          end: end ?? 'top 20%',
+          trigger: b.trigger,
+          start: () => windowFor(b).start,
+          end: () => windowFor(b).end,
           // Measured last, after any pin has inserted its spacer and settled
           // the real document positions these boundaries depend on.
           refreshPriority: -1,
           onUpdate: (self) => {
             const fill = reduced ? (self.progress > 0.5 ? 1 : 0) : self.progress;
-            setBase(palette[from]);
-            setCellColor(palette[to]);
+            setBase(palette[b.from]);
+            setCellColor(palette[b.to]);
             setFill(fill);
             // One crisp flip at the halfway point: the cells are hard-edged,
             // so a fading foreground would read as a smear against them.
-            setForeground(fill > 0.5 ? to : from);
+            setForeground(fill > 0.5 ? b.to : b.from);
           },
           onLeave: () => {
-            setBase(palette[to]);
+            setBase(palette[b.to]);
             setFill(0);
-            setForeground(to);
+            setForeground(b.to);
           },
           onLeaveBack: () => {
-            setBase(palette[from]);
+            setBase(palette[b.from]);
             setFill(0);
-            setForeground(from);
+            setForeground(b.from);
           },
         })
       );
 
       // Settle to the correct ground for wherever the page already is — a
-      // reload mid-page, or this effect re-running after a rebuild.
+      // reload mid-page, this effect re-running after a rebuild, or a refresh
+      // that re-measured the document out from under the last resolved ground.
       const settle = () => {
         let base = palette.paper;
         let baseKey: ColorKey = 'paper';
@@ -209,6 +263,14 @@ export const ScrollBackdrop: React.FC = () => {
       };
       settle();
 
+      // These boundaries are created before the preloader has handed over, so
+      // they first measure a document that is still short several sections'
+      // worth of content — enough for the last boundary to read as already
+      // crossed and paint the hero on the closing ground. Re-resolve after
+      // every re-measure. Listening on the global event rather than per-trigger
+      // `onRefresh` means this runs once, after all three are current.
+      ScrollTrigger.addEventListener('refresh', settle);
+
       // Rebuilding on resize keeps the cells square. Debounced, because a
       // drag-resize fires this continuously.
       let resizeId = 0;
@@ -231,6 +293,7 @@ export const ScrollBackdrop: React.FC = () => {
       return () => {
         window.clearTimeout(resizeId);
         window.removeEventListener('resize', onResize);
+        ScrollTrigger.removeEventListener('refresh', settle);
         triggers.forEach((st) => st.kill());
       };
     },

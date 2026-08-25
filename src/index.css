@@ -522,33 +522,9 @@
   pointer-events: auto;
 }
 
-/* Pixel burst on hover: cells flash once in a scattered order over the media.
-   The host opts in with .pixel-hover-host; each cell carries its own delay. */
-.pixel-hover-cell {
-  position: absolute;
-  visibility: hidden;
-  background-color: var(--color-spot);
-}
-.pixel-hover-host:hover .pixel-hover-cell,
-.pixel-hover-host:focus-visible .pixel-hover-cell {
-  animation: pixel-hover-flash 0.45s steps(1) both;
-  animation-delay: var(--pixel-hover-delay, 0s);
-}
-@keyframes pixel-hover-flash {
-  0% {
-    visibility: visible;
-  }
-  100% {
-    visibility: hidden;
-  }
-}
 @media (prefers-reduced-motion: reduce) {
   .music-playlist {
     transition: none;
-  }
-  .pixel-hover-host:hover .pixel-hover-cell,
-  .pixel-hover-host:focus-visible .pixel-hover-cell {
-    animation: none;
   }
 }
 

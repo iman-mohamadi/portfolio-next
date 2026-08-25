@@ -1,6 +1,5 @@
 import React, { useRef } from 'react';
 import { ScrollTrigger, useGSAP } from '../lib/gsap';
-import { PixelHoverBurst } from './motion/PixelHoverBurst';
 import { useReducedMotion } from '../hooks/useReducedMotion';
 
 const LINES = ['If it only works', 'in the demo,', "it doesn't work"];
@@ -79,7 +78,7 @@ export const QuoteSection: React.FC = () => {
       aria-label="Working principle"
       className="relative z-20 min-h-[160svh] px-6 md:px-10"
     >
-      <div className="pixel-hover-host sticky top-0 h-[100svh] flex items-center overflow-hidden">
+      <div className="sticky top-0 h-[100svh] flex items-center overflow-hidden">
         {/* The inverted panel, assembled from ink cells over the ground. */}
         <div ref={gridRef} className="absolute inset-0" aria-hidden="true">
           {Array.from({ length: COLS * ROWS }, (_, i) => {
@@ -99,9 +98,6 @@ export const QuoteSection: React.FC = () => {
             );
           })}
         </div>
-
-        {/* Hover burst over the settled panel, matching the reference grid. */}
-        <PixelHoverBurst cols={18} rows={12} />
 
         <blockquote
           ref={quoteRef}
