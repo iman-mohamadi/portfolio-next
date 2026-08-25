@@ -23,9 +23,16 @@ const BOUNDARIES: Boundary[] = [
   { trigger: '#about', from: 'paper', to: 'spot' },
   { trigger: '#work', from: 'spot', to: 'paper' },
   // The quote arrives behind an ink curtain that then lifts, so the ground
-  // flashes black between two light sections instead of never changing.
-  { trigger: '#quote', from: 'paper', to: 'ink', start: 'top 88%', end: 'top 48%' },
-  { trigger: '#quote', from: 'ink', to: 'paper', start: 'top 44%', end: 'top 4%' },
+  // flashes to the opposite of the ground between two same-coloured sections.
+  //
+  // Both windows start only once the quote's top has reached the top of the
+  // viewport — i.e. once Work has fully left it. Starting at 'top 88%' meant
+  // the curtain climbed while the Work reel was still on screen, and since
+  // Work's type is `ink` and the curtain IS `ink`, its text vanished into it:
+  // white-on-white in dark mode, black-on-black in light. The quote is sized
+  // to give both windows room to finish before the contact wipe begins.
+  { trigger: '#quote', from: 'paper', to: 'ink', start: 'top top', end: 'top -30%' },
+  { trigger: '#quote', from: 'ink', to: 'paper', start: 'top -38%', end: 'top -68%' },
   { trigger: '#contact', from: 'paper', to: 'spot' },
 ];
 

@@ -35,20 +35,27 @@ export const QuoteSection: React.FC = () => {
       ref={sectionRef}
       id="quote"
       aria-label="Working principle"
-      className="relative z-20 min-h-[100svh] flex items-center px-6 md:px-10"
+      className="relative z-20 min-h-[170svh] px-6 md:px-10"
     >
-      <blockquote className="w-full">
-        <p className="display text-ink text-[clamp(2.25rem,8.6vw,8rem)] leading-[0.86] text-center">
-          {LINES.map((line, i) => (
-            <span key={line} className="split-line-mask block">
-              <span className="quote-line block">
-                {i === 0 ? `“${line}` : line}
-                {i === LINES.length - 1 ? '”' : ''}
+      {/* Taller than the viewport, with the type held sticky inside it. The
+          curtain needs a run of scroll to rise and lift, and both windows have
+          to finish before the contact wipe starts — at exactly one viewport
+          they collided. Sticky keeps the quote on screen for that whole run
+          instead of it scrolling past behind the curtain. */}
+      <div className="sticky top-0 h-[100svh] flex items-center">
+        <blockquote className="w-full">
+          <p className="display text-ink text-[clamp(2.25rem,8.6vw,8rem)] leading-[0.86] text-center">
+            {LINES.map((line, i) => (
+              <span key={line} className="split-line-mask block">
+                <span className="quote-line block">
+                  {i === 0 ? `“${line}` : line}
+                  {i === LINES.length - 1 ? '”' : ''}
+                </span>
               </span>
-            </span>
-          ))}
-        </p>
-      </blockquote>
+            ))}
+          </p>
+        </blockquote>
+      </div>
     </section>
   );
 };
