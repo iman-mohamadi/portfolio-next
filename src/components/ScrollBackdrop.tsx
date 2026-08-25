@@ -93,7 +93,10 @@ export const ScrollBackdrop: React.FC = () => {
         ink: palette.paper,
         spot: styles.getPropertyValue('--color-on-spot').trim(),
       };
+      let lastForeground: ColorKey | null = null;
       const setForeground = (key: ColorKey) => {
+        if (key === lastForeground) return;
+        lastForeground = key;
         document.documentElement.style.setProperty('--on-ground', foreground[key]);
       };
 
@@ -111,9 +114,17 @@ export const ScrollBackdrop: React.FC = () => {
       };
       seedOffsets();
 
+      // Last-written style values, used by the setters below to skip
+      // redundant writes. Declared ahead of build(), which resets them.
+      let lastBase = '';
+      let lastColumns = '';
+      const lastScale: number[] = [];
+
       const build = () => {
         root.innerHTML = '';
         colsRef.current = [];
+        lastScale.length = 0;
+        lastColumns = '';
         for (let i = 0; i < cols; i += 1) {
           const wrap = document.createElement('div');
           wrap.style.cssText =
@@ -124,7 +135,11 @@ export const ScrollBackdrop: React.FC = () => {
           wrap.style.width = `calc(${100 / cols}% + 1px)`;
 
           const fill = document.createElement('div');
-          fill.style.cssText = 'width:100%;height:0;';
+          // Full-height and scaled rather than height-animated: the heights
+          // change on every scroll tick during a wipe, and a transform keeps
+          // that on the compositor where a height write forces layout.
+          fill.style.cssText =
+            'width:100%;height:100%;transform:scaleY(0);transform-origin:bottom;will-change:transform;';
           wrap.appendChild(fill);
           root.appendChild(wrap);
           colsRef.current.push(fill);
@@ -132,20 +147,32 @@ export const ScrollBackdrop: React.FC = () => {
       };
       build();
 
+      // Every setter below runs on each scroll tick during a wipe, so each one
+      // caches its last value and bails when nothing changed — redundant style
+      // and CSS-variable writes still cost a recalc even when the value is
+      // identical.
       const setBase = (c: string) => {
+        if (c === lastBase) return;
+        lastBase = c;
         root.style.backgroundColor = c;
       };
       const setColumns = (c: string) => {
+        if (c === lastColumns) return;
+        lastColumns = c;
         colsRef.current.forEach((el) => {
           el.style.backgroundColor = c;
         });
       };
       const setHeights = (fraction: number) => {
+        const span = 1 - Math.max(...offsets);
         colsRef.current.forEach((el, i) => {
-          const span = 1 - Math.max(...offsets);
           const local = Math.min(1, Math.max(0, (fraction - offsets[i]) / span));
-          // Snap to whole blocks — the quantisation is the whole effect.
-          el.style.height = `${(Math.ceil(local * rows) / rows) * 100}%`;
+          // Snap to whole blocks — the quantisation is the whole effect. It
+          // also means most ticks change nothing for a given column.
+          const scale = Math.ceil(local * rows) / rows;
+          if (lastScale[i] === scale) return;
+          lastScale[i] = scale;
+          el.style.transform = `scaleY(${scale})`;
         });
       };
 

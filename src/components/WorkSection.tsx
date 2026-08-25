@@ -1,4 +1,13 @@
-import React, { Suspense, lazy, useCallback, useRef, useState } from 'react';
+import React, {
+  Suspense,
+  forwardRef,
+  lazy,
+  useCallback,
+  useEffect,
+  useImperativeHandle,
+  useRef,
+  useState,
+} from 'react';
 import { gsap, ScrollTrigger, useGSAP } from '../lib/gsap';
 import { EncryptedText } from './motion/EncryptedText';
 import { useReducedMotion } from '../hooks/useReducedMotion';
@@ -63,10 +72,15 @@ const PROJECTS: WorkProject[] = [
 const COLS = 12;
 const ROWS = 8;
 
+interface PlateHandle {
+  /** 0 hidden, 1 fully revealed. */
+  setProgress: (progress: number) => void;
+}
+
 interface PlateProps {
   project: WorkProject;
-  /** 0 hidden, 1 fully revealed. */
-  progress: number;
+  /** Resting progress, applied on mount before any scroll drives it. */
+  initial: number;
   offsets: number[];
 }
 
@@ -77,44 +91,75 @@ interface PlateProps {
  * Clipping rather than resizing a wrapper matters: the picture has to stay
  * fixed in the frame while the blocks climb over it, and any approach that
  * anchors the image to the growing column drags it upward as it reveals.
+ *
+ * Progress is written imperatively through the handle rather than passed as a
+ * prop: it changes on every scroll tick while the reel is pinned, and a React
+ * render of three plates times twelve columns per frame was the single biggest
+ * source of scroll jank on the page. The snap to whole blocks also means most
+ * ticks change nothing for a given column, so writes are skipped entirely.
  */
-const Plate: React.FC<PlateProps> = ({ project, progress, offsets }) => {
-  const span = 1 - Math.max(...offsets);
+const Plate = forwardRef<PlateHandle, PlateProps>(({ project, initial, offsets }, ref) => {
+  const colRefs = useRef<(HTMLDivElement | null)[]>([]);
+  const lastH = useRef<number[]>([]);
+
+  const apply = useCallback(
+    (progress: number) => {
+      const span = 1 - Math.max(...offsets);
+      for (let i = 0; i < COLS; i += 1) {
+        const el = colRefs.current[i];
+        if (!el) continue;
+        const local = Math.min(1, Math.max(0, (progress - offsets[i]) / span));
+        const h = Math.ceil(local * ROWS) / ROWS;
+        if (lastH.current[i] === h) continue;
+        lastH.current[i] = h;
+        el.style.clipPath = `inset(${(1 - h) * 100}% 0 0 0)`;
+      }
+    },
+    [offsets]
+  );
+
+  useImperativeHandle(ref, () => ({ setProgress: apply }), [apply]);
+
+  useEffect(() => {
+    apply(initial);
+    // The resting state only matters until the ScrollTrigger takes over.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <div className="absolute inset-0 overflow-hidden">
-      {Array.from({ length: COLS }, (_, i) => {
-        const local = Math.min(1, Math.max(0, (progress - offsets[i]) / span));
-        const h = Math.ceil(local * ROWS) / ROWS;
-        return (
+      {Array.from({ length: COLS }, (_, i) => (
+        <div
+          key={i}
+          ref={(el) => {
+            colRefs.current[i] = el;
+          }}
+          className="absolute top-0 bottom-0 overflow-hidden"
+          style={{
+            left: `${(i / COLS) * 100}%`,
+            // Hairline overlap: sub-pixel column gaps otherwise show the
+            // outgoing image as vertical seams.
+            width: `calc(${100 / COLS}% + 1px)`,
+            clipPath: 'inset(100% 0 0 0)',
+          }}
+        >
           <div
-            key={i}
-            className="absolute top-0 bottom-0 overflow-hidden"
-            style={{
-              left: `${(i / COLS) * 100}%`,
-              // Hairline overlap: sub-pixel column gaps otherwise show the
-              // outgoing image as vertical seams.
-              width: `calc(${100 / COLS}% + 1px)`,
-              clipPath: `inset(${(1 - h) * 100}% 0 0 0)`,
-            }}
+            className="absolute top-0 h-full"
+            style={{ left: `-${i * 100}%`, width: `${COLS * 100}%` }}
           >
-            <div
-              className="absolute top-0 h-full"
-              style={{ left: `-${i * 100}%`, width: `${COLS * 100}%` }}
-            >
-              <img
-                src={project.image}
-                alt=""
-                loading="lazy"
-                className="w-full h-full object-cover"
-              />
-            </div>
+            <img
+              src={project.image}
+              alt=""
+              loading="lazy"
+              className="w-full h-full object-cover"
+            />
           </div>
-        );
-      })}
+        </div>
+      ))}
     </div>
   );
-};
+});
+Plate.displayName = 'Plate';
 
 /**
  * Selected work as a pinned reel: the heading holds at the top while the
@@ -140,9 +185,9 @@ export const WorkSection: React.FC = () => {
     Array.from({ length: COLS }, () => Math.random() * 0.32)
   ).current;
 
-  const [progress, setProgress] = useState<number[]>(() =>
-    PROJECTS.map((_, i) => (i === 0 ? 1 : 0))
-  );
+  // Written imperatively from the ScrollTrigger — never React state.
+  const plateRefs = useRef<(PlateHandle | null)[]>([]);
+  const activeRef = useRef(0);
 
   const open = useCallback((key: ProjectKey) => {
     setMounted((keys) => (keys.includes(key) ? keys : [...keys, key]));
@@ -173,7 +218,9 @@ export const WorkSection: React.FC = () => {
           start: 'top top',
           end: () => `+=${window.innerHeight * steps * 1.15}`,
           pin: true,
-          scrub: true,
+          // Smoothed like the Tools track: raw `scrub: true` steps with each
+          // wheel notch, where the reference's wipes glide and settle.
+          scrub: 0.7,
           anticipatePin: 1,
           invalidateOnRefresh: true,
           // Same reason as the Tools pin: this spacer moves every later
@@ -185,14 +232,18 @@ export const WorkSection: React.FC = () => {
             const idx = Math.min(steps, Math.floor(pos));
             const local = pos - idx;
 
-            setProgress(
-              PROJECTS.map((_, i) => {
-                if (i <= idx) return 1;
-                if (i === idx + 1) return local;
-                return 0;
-              })
-            );
-            setActive(local > 0.5 ? Math.min(steps, idx + 1) : idx);
+            plateRefs.current.forEach((plate, i) => {
+              if (!plate) return;
+              plate.setProgress(i <= idx ? 1 : i === idx + 1 ? local : 0);
+            });
+
+            // The meta column is the only React consumer, and it only needs a
+            // render when the active project actually flips.
+            const next = local > 0.5 ? Math.min(steps, idx + 1) : idx;
+            if (next !== activeRef.current) {
+              activeRef.current = next;
+              setActive(next);
+            }
 
             if (numberRef.current) {
               gsap.set(numberRef.current, { yPercent: -(pos / PROJECTS.length) * 100 });
@@ -259,7 +310,14 @@ export const WorkSection: React.FC = () => {
             <div className="col-span-6 relative bg-paper-deep overflow-hidden">
               {PROJECTS.map((p, i) => (
                 <div key={p.key} className="absolute inset-0" style={{ zIndex: i + 1 }}>
-                  <Plate project={p} progress={progress[i]} offsets={offsets} />
+                  <Plate
+                    ref={(h) => {
+                      plateRefs.current[i] = h;
+                    }}
+                    project={p}
+                    initial={i === 0 ? 1 : 0}
+                    offsets={offsets}
+                  />
                 </div>
               ))}
             </div>

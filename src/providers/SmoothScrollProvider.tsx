@@ -43,7 +43,9 @@ export const SmoothScrollProvider: React.FC<{ children: React.ReactNode }> = ({ 
     }
 
     const lenis = new Lenis({
-      duration: 1.15,
+      // Long enough that a wheel flick glides through a wipe rather than
+      // stepping — the reference's scroll reads heavy, with a visible tail.
+      duration: 1.35,
       // Expo-out: fast pickup, long glide, no visible tail bounce.
       easing: (t: number) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
       smoothWheel: true,

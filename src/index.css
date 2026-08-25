@@ -272,9 +272,12 @@
    ============================================================================ */
 .paper-grain {
   position: fixed;
-  inset: -150%;
-  width: 400%;
-  height: 400%;
+  /* Just enough overdraw to cover the largest jitter below (±3%). The layer
+     is blended over the whole page every frame, so its area is pure GPU cost:
+     at 400% it was sixteen viewports of multiply per frame. */
+  inset: -10%;
+  width: 120%;
+  height: 120%;
   pointer-events: none;
   z-index: 9998;
   opacity: 0.5;
