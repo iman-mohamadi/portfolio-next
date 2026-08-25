@@ -31,8 +31,12 @@ const BOUNDARIES: Boundary[] = [
   // Work's type is `ink` and the curtain IS `ink`, its text vanished into it:
   // white-on-white in dark mode, black-on-black in light. The quote is sized
   // to give both windows room to finish before the contact wipe begins.
-  { trigger: '#quote', from: 'paper', to: 'ink', start: 'top top', end: 'top -30%' },
-  { trigger: '#quote', from: 'ink', to: 'paper', start: 'top -38%', end: 'top -68%' },
+  // The gap between these two is where the quote's type actually lives: the
+  // ground is settled ink there, so one colour can contrast with the whole
+  // screen. During a wipe the viewport is genuinely two colours and no single
+  // text colour works, so the quote fades out across both windows.
+  { trigger: '#quote', from: 'paper', to: 'ink', start: 'top top', end: 'top -22%' },
+  { trigger: '#quote', from: 'ink', to: 'paper', start: 'top -75%', end: 'top -100%' },
   { trigger: '#contact', from: 'paper', to: 'spot' },
 ];
 
@@ -79,6 +83,18 @@ export const ScrollBackdrop: React.FC = () => {
         paper: styles.getPropertyValue('--color-paper').trim(),
         ink: styles.getPropertyValue('--color-ink').trim(),
         spot: styles.getPropertyValue('--color-spot').trim(),
+      };
+
+      // The legible foreground for each ground. Published as `--on-ground` so
+      // type sitting over a changing ground can follow it — hardcoding the ink
+      // token meant the quote vanished the moment the curtain became ink.
+      const foreground: Record<ColorKey, string> = {
+        paper: palette.ink,
+        ink: palette.paper,
+        spot: styles.getPropertyValue('--color-on-spot').trim(),
+      };
+      const setForeground = (key: ColorKey) => {
+        document.documentElement.style.setProperty('--on-ground', foreground[key]);
       };
 
       // Square blocks: the column count sets the block width, and the row
@@ -135,6 +151,7 @@ export const ScrollBackdrop: React.FC = () => {
 
       setBase(palette.paper);
       setColumns(palette.spot);
+      setForeground('paper');
 
       const triggers = BOUNDARIES.map(({ trigger, from, to, start, end }) =>
         ScrollTrigger.create({
@@ -150,17 +167,24 @@ export const ScrollBackdrop: React.FC = () => {
           // the real document positions these boundaries depend on.
           refreshPriority: -1,
           onUpdate: (self) => {
+            const fill = reduced ? (self.progress > 0.5 ? 1 : 0) : self.progress;
             setBase(palette[from]);
             setColumns(palette[to]);
-            setHeights(reduced ? (self.progress > 0.5 ? 1 : 0) : self.progress);
+            setHeights(fill);
+            // A single crisp flip at the halfway point rather than a blend:
+            // the columns are hard-edged, so a fading foreground would read as
+            // a smear against them.
+            setForeground(fill > 0.5 ? to : from);
           },
           onLeave: () => {
             setBase(palette[to]);
             setHeights(0);
+            setForeground(to);
           },
           onLeaveBack: () => {
             setBase(palette[from]);
             setHeights(0);
+            setForeground(from);
           },
         })
       );
@@ -170,11 +194,13 @@ export const ScrollBackdrop: React.FC = () => {
       // Boundaries are in scroll order, so the last one that has started wins.
       const settle = () => {
         let base = palette.paper;
+        let baseKey: ColorKey = 'paper';
         let active = -1;
         triggers.forEach((st, i) => {
           if (st.progress <= 0) return;
           if (st.progress >= 1) {
-            base = palette[BOUNDARIES[i].to];
+            baseKey = BOUNDARIES[i].to;
+            base = palette[baseKey];
             active = -1;
           } else {
             active = i;
@@ -182,12 +208,16 @@ export const ScrollBackdrop: React.FC = () => {
         });
 
         if (active >= 0) {
-          setBase(palette[BOUNDARIES[active].from]);
-          setColumns(palette[BOUNDARIES[active].to]);
-          setHeights(triggers[active].progress);
+          const { from, to } = BOUNDARIES[active];
+          const fill = triggers[active].progress;
+          setBase(palette[from]);
+          setColumns(palette[to]);
+          setHeights(fill);
+          setForeground(fill > 0.5 ? to : from);
         } else {
           setBase(base);
           setHeights(0);
+          setForeground(baseKey);
         }
       };
       settle();

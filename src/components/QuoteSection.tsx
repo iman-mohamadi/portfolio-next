@@ -5,11 +5,16 @@ import { useReducedMotion } from '../hooks/useReducedMotion';
 const LINES = ['If it only works', 'in the demo,', "it doesn't work"];
 
 /**
- * A single line set as large as the frame allows, arriving behind the ink
- * curtain that ScrollBackdrop drives across this section. The type stays ink
- * throughout rather than inverting — it is briefly swallowed by the curtain
- * and then revealed as the ground returns to paper, which is the whole point
- * of the beat.
+ * A single line set as large as the frame allows, on the ink ground the block
+ * wipe brings in for this section.
+ *
+ * The type is deliberately absent while either curtain is moving. Mid-wipe the
+ * viewport is split between two grounds, so no single text colour contrasts
+ * with all of it — the previous version left the lower half of the quote
+ * swallowed by the rising blocks. It fades in only once the ground has settled
+ * to ink, holds for the whole readable stretch, and fades out before the
+ * curtain lifts. `text-on-ground` then resolves to the correct foreground for
+ * whichever ground is settled, in either theme.
  */
 export const QuoteSection: React.FC = () => {
   const sectionRef = useRef<HTMLElement>(null);
@@ -19,13 +24,25 @@ export const QuoteSection: React.FC = () => {
     () => {
       if (reduced) return;
 
-      gsap.from('.quote-line', {
-        yPercent: 104,
-        duration: 1.1,
-        ease: 'arch',
-        stagger: 0.08,
-        scrollTrigger: { trigger: sectionRef.current, start: 'top 55%', once: true },
-      });
+      // Window matches the gap between the two curtain boundaries in
+      // ScrollBackdrop: in by the time the first finishes, out before the
+      // second starts.
+      gsap
+        .timeline({
+          scrollTrigger: {
+            trigger: sectionRef.current,
+            start: 'top -14%',
+            end: 'top -78%',
+            scrub: true,
+          },
+        })
+        .fromTo(
+          '.quote-body',
+          { opacity: 0, yPercent: 6 },
+          { opacity: 1, yPercent: 0, duration: 0.13, ease: 'none' }
+        )
+        .to('.quote-body', { opacity: 1, duration: 0.74, ease: 'none' })
+        .to('.quote-body', { opacity: 0, yPercent: -6, duration: 0.13, ease: 'none' });
     },
     { scope: sectionRef, dependencies: [reduced] }
   );
@@ -35,22 +52,18 @@ export const QuoteSection: React.FC = () => {
       ref={sectionRef}
       id="quote"
       aria-label="Working principle"
-      className="relative z-20 min-h-[170svh] px-6 md:px-10"
+      className="relative z-20 min-h-[200svh] px-6 md:px-10"
     >
-      {/* Taller than the viewport, with the type held sticky inside it. The
-          curtain needs a run of scroll to rise and lift, and both windows have
-          to finish before the contact wipe starts — at exactly one viewport
-          they collided. Sticky keeps the quote on screen for that whole run
-          instead of it scrolling past behind the curtain. */}
+      {/* Tall, with the type held sticky inside. The curtain needs a run of
+          scroll to rise, hold and lift, and both windows have to finish before
+          the contact wipe starts — at one viewport they collided. */}
       <div className="sticky top-0 h-[100svh] flex items-center">
         <blockquote className="w-full">
-          <p className="display text-ink text-[clamp(2.25rem,8.6vw,8rem)] leading-[0.86] text-center">
+          <p className="quote-body display text-on-ground text-[clamp(2.25rem,8.6vw,8rem)] leading-[0.86] text-center">
             {LINES.map((line, i) => (
-              <span key={line} className="split-line-mask block">
-                <span className="quote-line block">
-                  {i === 0 ? `“${line}` : line}
-                  {i === LINES.length - 1 ? '”' : ''}
-                </span>
+              <span key={line} className="block">
+                {i === 0 ? `“${line}` : line}
+                {i === LINES.length - 1 ? '”' : ''}
               </span>
             ))}
           </p>

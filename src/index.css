@@ -49,6 +49,20 @@
   --color-spot: #ff6a30;
 }
 
+/* The legible foreground for whichever ground the block wipe currently has on
+   screen. ScrollBackdrop rewrites this as it crosses a boundary, so type over
+   a changing ground can track it instead of being hardcoded to one token and
+   disappearing when the ground becomes that same token. Defaults to ink,
+   which is correct everywhere the ground is paper. */
+:root {
+  --on-ground: var(--color-ink);
+}
+
+.text-on-ground {
+  color: var(--on-ground);
+  transition: color 0.18s linear;
+}
+
 @layer base {
   :root {
     color-scheme: light;
