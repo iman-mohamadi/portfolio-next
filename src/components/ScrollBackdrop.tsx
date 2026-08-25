@@ -1,6 +1,5 @@
 import React, { useRef } from 'react';
 import { ScrollTrigger, useGSAP } from '../lib/gsap';
-import { useTheme } from '../hooks/useTheme';
 import { useReducedMotion } from '../hooks/useReducedMotion';
 
 type ColorKey = 'paper' | 'ink' | 'spot';
@@ -15,62 +14,35 @@ interface Boundary {
 }
 
 // Scroll order of the page: paper (hero + statement) → spot (about/tools) →
-// paper (work) → an ink curtain across the quote → spot (contact + footer).
-// Each entry is the section whose arrival drives that handoff, and they must
-// stay in scroll order — `settle()` below resolves the current ground by
-// taking the last boundary that has started.
+// paper (work + quote) → spot (contact + footer). The quote section paints its
+// own ink cell-grid overlay, so the ground simply stays paper underneath it.
+// Entries must stay in scroll order — `settle()` below resolves the current
+// ground by taking the last boundary that has started.
 const BOUNDARIES: Boundary[] = [
   { trigger: '#about', from: 'paper', to: 'spot' },
   { trigger: '#work', from: 'spot', to: 'paper' },
-  // The quote arrives behind an ink curtain that then lifts, so the ground
-  // flashes to the opposite of the ground between two same-coloured sections.
-  //
-  // Both windows start only once the quote's top has reached the top of the
-  // viewport — i.e. once Work has fully left it. Starting at 'top 88%' meant
-  // the curtain climbed while the Work reel was still on screen, and since
-  // Work's type is `ink` and the curtain IS `ink`, its text vanished into it:
-  // white-on-white in dark mode, black-on-black in light. The quote is sized
-  // to give both windows room to finish before the contact wipe begins.
-  // The gap between these two is where the quote's type actually lives: the
-  // ground is settled ink there, so one colour can contrast with the whole
-  // screen. During a wipe the viewport is genuinely two colours and no single
-  // text colour works, so the quote fades out across both windows.
-  { trigger: '#quote', from: 'paper', to: 'ink', start: 'top top', end: 'top -22%' },
-  { trigger: '#quote', from: 'ink', to: 'paper', start: 'top -75%', end: 'top -100%' },
   { trigger: '#contact', from: 'paper', to: 'spot' },
 ];
 
-/** Widest a single block may get. Below this the grid stops subdividing. */
-const MAX_BLOCK = 130;
-const MIN_COLS = 8;
+/** Grid columns, matching the reference's section transition. */
+const COLS = 6;
 
 /**
- * Spread of the per-column head start. Small on purpose: the reference reads
- * as one advancing edge with a jagged crest, so neighbouring columns have to
- * stay within a block or two of each other. Widen this and the columns
- * separate into unrelated vertical stripes instead of a skyline.
- */
-const OFFSET_SPREAD = 0.3;
-
-/**
- * The page's background, and the block wipe that changes it.
+ * The page's background, and the pixel-cell dissolve that changes it.
  *
- * A fixed layer behind every section carries the ground colour, so sections
- * themselves paint nothing (`.bleed-spot` has no background of its own). The
- * handoff between grounds is not a fade: it is a grid of squares, one stack
- * per column, that fills from the bottom as the boundary is scrolled through.
- * Each column carries a randomised head start and each stack height is snapped
- * to whole blocks, which is what produces the stepped skyline rather than a
- * set of smooth bars.
+ * A fixed layer behind every section carries the ground colour. The handoff
+ * between grounds is a grid of large square cells in the incoming colour that
+ * pop in one by one as the boundary is scrolled through — lower rows first,
+ * with a per-cell scatter, so the new ground assembles as a chunky pixel
+ * dissolve rather than a smooth fade or a rising curtain.
  *
- * Column heights are written straight to style in the scroll callback rather
- * than held in React state — this runs on every scroll tick, and a re-render
- * per frame for sixteen divs would be pure waste.
+ * Cell visibility is written straight to style in the scroll callback rather
+ * than held in React state — this runs on every scroll tick, and each cell
+ * flips exactly once per crossing, so almost every tick writes nothing.
  */
 export const ScrollBackdrop: React.FC = () => {
   const rootRef = useRef<HTMLDivElement>(null);
-  const colsRef = useRef<HTMLDivElement[]>([]);
-  const { theme } = useTheme();
+  const cellsRef = useRef<HTMLDivElement[]>([]);
   const reduced = useReducedMotion();
 
   useGSAP(
@@ -85,9 +57,8 @@ export const ScrollBackdrop: React.FC = () => {
         spot: styles.getPropertyValue('--color-spot').trim(),
       };
 
-      // The legible foreground for each ground. Published as `--on-ground` so
-      // type sitting over a changing ground can follow it — hardcoding the ink
-      // token meant the quote vanished the moment the curtain became ink.
+      // The legible foreground for each ground, published as `--on-ground` so
+      // type sitting over a changing ground can follow it.
       const foreground: Record<ColorKey, string> = {
         paper: palette.ink,
         ink: palette.paper,
@@ -100,125 +71,114 @@ export const ScrollBackdrop: React.FC = () => {
         document.documentElement.style.setProperty('--on-ground', foreground[key]);
       };
 
-      // Square blocks: the column count sets the block width, and the row
-      // count follows from it so each block is as tall as it is wide.
-      let cols = Math.max(MIN_COLS, Math.ceil(window.innerWidth / MAX_BLOCK));
-      let rows = Math.max(1, Math.ceil(window.innerHeight / (window.innerWidth / cols)));
+      // Square cells: the column count fixes the cell edge, rows follow.
+      let rows = Math.max(
+        1,
+        Math.round(window.innerHeight / (window.innerWidth / COLS))
+      );
 
-      // Per-column head start. Stable across a session so the skyline doesn't
-      // reshuffle every time a boundary is re-crossed.
-      const offsets: number[] = [];
-      const seedOffsets = () => {
-        offsets.length = 0;
-        for (let i = 0; i < cols; i += 1) offsets.push(Math.random() * OFFSET_SPREAD);
+      // Per-cell flip threshold in [0, 1]. Lower rows flip first and each cell
+      // carries a jitter, which is what makes the dissolve read as scattered
+      // pixels instead of a clean bottom-up sweep. Recomputed on rebuild only,
+      // so the pattern is stable while a boundary is being scrubbed.
+      let thresholds: number[] = [];
+      const seedThresholds = () => {
+        thresholds = [];
+        for (let r = 0; r < rows; r += 1) {
+          const rowBase = rows === 1 ? 0 : (1 - r / (rows - 1)) * 0.62;
+          for (let c = 0; c < COLS; c += 1) {
+            thresholds.push(
+              Math.min(0.96, Math.max(0.02, 0.06 + rowBase + Math.random() * 0.3))
+            );
+          }
+        }
       };
-      seedOffsets();
 
-      // Last-written style values, used by the setters below to skip
-      // redundant writes. Declared ahead of build(), which resets them.
+      // Last-written style values, so redundant writes are skipped — they
+      // still cost a style recalc even when the value is identical.
       let lastBase = '';
-      let lastColumns = '';
-      const lastScale: number[] = [];
+      let lastCellColor = '';
+      const lastOn: boolean[] = [];
 
       const build = () => {
         root.innerHTML = '';
-        colsRef.current = [];
-        lastScale.length = 0;
-        lastColumns = '';
-        for (let i = 0; i < cols; i += 1) {
-          const wrap = document.createElement('div');
-          wrap.style.cssText =
-            'position:absolute;bottom:0;top:0;display:flex;flex-direction:column;justify-content:flex-end;';
-          wrap.style.left = `${(i / cols) * 100}%`;
-          // Overlap by a hair: sub-pixel gaps between columns show the layer
-          // behind as hairlines at some widths.
-          wrap.style.width = `calc(${100 / cols}% + 1px)`;
-
-          const fill = document.createElement('div');
-          // Full-height and scaled rather than height-animated: the heights
-          // change on every scroll tick during a wipe, and a transform keeps
-          // that on the compositor where a height write forces layout.
-          fill.style.cssText =
-            'width:100%;height:100%;transform:scaleY(0);transform-origin:bottom;will-change:transform;';
-          wrap.appendChild(fill);
-          root.appendChild(wrap);
-          colsRef.current.push(fill);
+        cellsRef.current = [];
+        lastCellColor = '';
+        lastOn.length = 0;
+        seedThresholds();
+        for (let r = 0; r < rows; r += 1) {
+          for (let c = 0; c < COLS; c += 1) {
+            const cell = document.createElement('div');
+            cell.style.cssText = `position:absolute;visibility:hidden;left:${
+              (c / COLS) * 100
+            }%;top:${(r / rows) * 100}%;width:calc(${100 / COLS}% + 1px);height:calc(${
+              100 / rows
+            }% + 1px);`;
+            root.appendChild(cell);
+            cellsRef.current.push(cell);
+          }
         }
       };
       build();
 
-      // Every setter below runs on each scroll tick during a wipe, so each one
-      // caches its last value and bails when nothing changed — redundant style
-      // and CSS-variable writes still cost a recalc even when the value is
-      // identical.
       const setBase = (c: string) => {
         if (c === lastBase) return;
         lastBase = c;
         root.style.backgroundColor = c;
       };
-      const setColumns = (c: string) => {
-        if (c === lastColumns) return;
-        lastColumns = c;
-        colsRef.current.forEach((el) => {
+      const setCellColor = (c: string) => {
+        if (c === lastCellColor) return;
+        lastCellColor = c;
+        cellsRef.current.forEach((el) => {
           el.style.backgroundColor = c;
         });
       };
-      const setHeights = (fraction: number) => {
-        const span = 1 - Math.max(...offsets);
-        colsRef.current.forEach((el, i) => {
-          const local = Math.min(1, Math.max(0, (fraction - offsets[i]) / span));
-          // Snap to whole blocks — the quantisation is the whole effect. It
-          // also means most ticks change nothing for a given column.
-          const scale = Math.ceil(local * rows) / rows;
-          if (lastScale[i] === scale) return;
-          lastScale[i] = scale;
-          el.style.transform = `scaleY(${scale})`;
+      const setFill = (progress: number) => {
+        cellsRef.current.forEach((el, i) => {
+          const on = progress >= thresholds[i];
+          if (lastOn[i] === on) return;
+          lastOn[i] = on;
+          el.style.visibility = on ? 'visible' : 'hidden';
         });
       };
 
       setBase(palette.paper);
-      setColumns(palette.spot);
       setForeground('paper');
 
       const triggers = BOUNDARIES.map(({ trigger, from, to, start, end }) =>
         ScrollTrigger.create({
           trigger,
-          // Deliberately late and short. Starting at 'top bottom' meant the
-          // wipe began the instant the outgoing section started moving — the
-          // blocks climbed over a hero that was still full-frame. Waiting
-          // until the incoming section is most of the way up the viewport
-          // keeps the wipe a discrete sweep between two settled states.
+          // Deliberately late and short, so the dissolve is a discrete sweep
+          // between two settled states rather than a slow drizzle.
           start: start ?? 'top 70%',
-          end: end ?? 'top 15%',
+          end: end ?? 'top 20%',
           // Measured last, after any pin has inserted its spacer and settled
           // the real document positions these boundaries depend on.
           refreshPriority: -1,
           onUpdate: (self) => {
             const fill = reduced ? (self.progress > 0.5 ? 1 : 0) : self.progress;
             setBase(palette[from]);
-            setColumns(palette[to]);
-            setHeights(fill);
-            // A single crisp flip at the halfway point rather than a blend:
-            // the columns are hard-edged, so a fading foreground would read as
-            // a smear against them.
+            setCellColor(palette[to]);
+            setFill(fill);
+            // One crisp flip at the halfway point: the cells are hard-edged,
+            // so a fading foreground would read as a smear against them.
             setForeground(fill > 0.5 ? to : from);
           },
           onLeave: () => {
             setBase(palette[to]);
-            setHeights(0);
+            setFill(0);
             setForeground(to);
           },
           onLeaveBack: () => {
             setBase(palette[from]);
-            setHeights(0);
+            setFill(0);
             setForeground(from);
           },
         })
       );
 
       // Settle to the correct ground for wherever the page already is — a
-      // reload mid-page, or this effect re-running after a theme toggle.
-      // Boundaries are in scroll order, so the last one that has started wins.
+      // reload mid-page, or this effect re-running after a rebuild.
       const settle = () => {
         let base = palette.paper;
         let baseKey: ColorKey = 'paper';
@@ -238,31 +198,29 @@ export const ScrollBackdrop: React.FC = () => {
           const { from, to } = BOUNDARIES[active];
           const fill = triggers[active].progress;
           setBase(palette[from]);
-          setColumns(palette[to]);
-          setHeights(fill);
+          setCellColor(palette[to]);
+          setFill(fill);
           setForeground(fill > 0.5 ? to : from);
         } else {
           setBase(base);
-          setHeights(0);
+          setFill(0);
           setForeground(baseKey);
         }
       };
       settle();
 
-      // Rebuilding on resize keeps the blocks square. Debounced, because a
+      // Rebuilding on resize keeps the cells square. Debounced, because a
       // drag-resize fires this continuously.
       let resizeId = 0;
       const onResize = () => {
         window.clearTimeout(resizeId);
         resizeId = window.setTimeout(() => {
-          const nextCols = Math.max(MIN_COLS, Math.ceil(window.innerWidth / MAX_BLOCK));
-          rows = Math.max(
+          const nextRows = Math.max(
             1,
-            Math.ceil(window.innerHeight / (window.innerWidth / nextCols))
+            Math.round(window.innerHeight / (window.innerWidth / COLS))
           );
-          if (nextCols !== cols) {
-            cols = nextCols;
-            seedOffsets();
+          if (nextRows !== rows) {
+            rows = nextRows;
             build();
           }
           settle();
@@ -276,7 +234,7 @@ export const ScrollBackdrop: React.FC = () => {
         triggers.forEach((st) => st.kill());
       };
     },
-    { dependencies: [theme, reduced] }
+    { dependencies: [reduced] }
   );
 
   return (

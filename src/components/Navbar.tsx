@@ -1,8 +1,7 @@
 import React, { useRef } from 'react';
-import { Volume2, VolumeX, Sun, Moon } from 'lucide-react';
+import { Volume2, VolumeX } from 'lucide-react';
 import { gsap, ScrollTrigger, useGSAP } from '../lib/gsap';
 import { useSmoothScroll } from '../providers/SmoothScrollProvider';
-import { useTheme } from '../hooks/useTheme';
 import { EncryptedText } from './motion/EncryptedText';
 
 interface NavbarProps {
@@ -25,7 +24,6 @@ export const Navbar: React.FC<NavbarProps> = ({
   toggleAudio,
 }) => {
   const headerRef = useRef<HTMLElement>(null);
-  const { theme, toggle: toggleTheme } = useTheme();
   const { scrollTo } = useSmoothScroll();
 
   useGSAP(() => {
@@ -85,23 +83,6 @@ export const Navbar: React.FC<NavbarProps> = ({
       </nav>
 
       <div className="flex items-center gap-3 md:gap-4">
-        <button
-          onClick={toggleTheme}
-          aria-pressed={theme === 'dark'}
-          className="label text-ink p-1"
-          title={theme === 'dark' ? 'Switch to light' : 'Switch to dark'}
-          data-cursor="active"
-        >
-          {theme === 'dark' ? (
-            <Sun className="w-3.5 h-3.5" aria-hidden="true" />
-          ) : (
-            <Moon className="w-3.5 h-3.5" aria-hidden="true" />
-          )}
-          <span className="sr-only">
-            {theme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'}
-          </span>
-        </button>
-
         <button
           onClick={toggleAudio}
           aria-pressed={isAudioActive}

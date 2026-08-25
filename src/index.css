@@ -475,6 +475,83 @@
   }
 }
 
+/* The Tools reel's rolling stacks and pixel-burst slide swap. */
+.tools-roll-mask {
+  overflow: hidden;
+}
+.tools-roll {
+  transition: transform 0.55s var(--ease-page);
+  will-change: transform;
+}
+.tools-flash-cell {
+  position: absolute;
+  visibility: hidden;
+}
+.tools-flash.is-flashing .tools-flash-cell {
+  animation: tools-cell-flash 0.4s steps(1) forwards;
+  animation-delay: var(--flash-delay, 0s);
+}
+@keyframes tools-cell-flash {
+  0% {
+    visibility: visible;
+  }
+  100% {
+    visibility: hidden;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .tools-roll {
+    transition: none;
+  }
+  .tools-flash.is-flashing .tools-flash-cell {
+    animation: none;
+  }
+}
+
+/* Hero music player: the playlist stays folded until the player is engaged. */
+.music-playlist {
+  opacity: 0;
+  transform: translateY(4px);
+  pointer-events: none;
+  transition: opacity 0.3s var(--ease-page), transform 0.3s var(--ease-page);
+}
+.music-player:hover .music-playlist,
+.music-player:focus-within .music-playlist {
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
+}
+
+/* Pixel burst on hover: cells flash once in a scattered order over the media.
+   The host opts in with .pixel-hover-host; each cell carries its own delay. */
+.pixel-hover-cell {
+  position: absolute;
+  visibility: hidden;
+  background-color: var(--color-spot);
+}
+.pixel-hover-host:hover .pixel-hover-cell,
+.pixel-hover-host:focus-visible .pixel-hover-cell {
+  animation: pixel-hover-flash 0.45s steps(1) both;
+  animation-delay: var(--pixel-hover-delay, 0s);
+}
+@keyframes pixel-hover-flash {
+  0% {
+    visibility: visible;
+  }
+  100% {
+    visibility: hidden;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .music-playlist {
+    transition: none;
+  }
+  .pixel-hover-host:hover .pixel-hover-cell,
+  .pixel-hover-host:focus-visible .pixel-hover-cell {
+    animation: none;
+  }
+}
+
 /* Row hover: an ink bar wipes across the whole row from the left and the
    title flips to the spot colour. Used by the numbered lists in About and
    Tools — on the orange ground this is the only hover state on the page that
@@ -564,9 +641,9 @@
     ),
     radial-gradient(
       circle at 38% 32%,
-      var(--color-spot) 0%,
-      var(--color-spot) 34%,
-      #c2350a 100%
+      #f2a793 0%,
+      #f2a793 34%,
+      #e0765c 100%
     );
   animation: orb-drift 14s ease-in-out infinite;
   will-change: transform, border-radius;

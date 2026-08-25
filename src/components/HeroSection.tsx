@@ -3,6 +3,7 @@ import { gsap, useGSAP } from '../lib/gsap';
 import { useSmoothScroll } from '../providers/SmoothScrollProvider';
 import { useReducedMotion } from '../hooks/useReducedMotion';
 import { useIsPhone } from '../hooks/useIsPhone';
+import { HeroMusicPlayer } from './HeroMusicPlayer';
 
 interface HeroSectionProps {
   /** Flips true when the preloader finishes; gates the entrance timeline. */
@@ -106,6 +107,9 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ ready }) => {
           <span className="text-ink tabular-nums">{clock}</span>
         </div>
       </div>
+
+      {/* Music player, parked mid-right like the reference's "Press play". */}
+      <HeroMusicPlayer className="hero-meta hidden md:block absolute right-10 top-[55%] z-10" />
 
       {/* Lower word, right-aligned so the pair brackets the object diagonally */}
       <div className="relative z-10 px-6 md:px-10">

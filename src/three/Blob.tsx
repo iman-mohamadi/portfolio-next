@@ -3,7 +3,6 @@ import * as THREE from 'three';
 import { useFrame } from '@react-three/fiber';
 import { SIMPLEX_3D } from './shaders/noise';
 import { damp } from '../lib/motion';
-import { useThemeColors } from './useThemeColors';
 import type { PointerRef, ScrollRef } from './types';
 
 const vertexShader = /* glsl */ `
@@ -131,24 +130,24 @@ interface BlobProps {
 export function Blob({ scrollRef, pointerRef, quality }: BlobProps) {
   const groupRef = useRef<THREE.Group>(null);
   const matRef = useRef<THREE.ShaderMaterial>(null);
-  const colors = useThemeColors();
 
   const detail = quality === 'high' ? 64 : quality === 'mid' ? 40 : 24;
 
   const uniforms = useMemo(
     () => ({
       uTime: { value: 0 },
-      uDisplace: { value: 0.38 },
+      // Gentle undulation: the reference object reads as a soft rounded mass,
+      // not a churning blob.
+      uDisplace: { value: 0.3 },
       uScroll: { value: 0 },
       uMorph: { value: 0 },
       uOpacity: { value: 1 },
-      uBody: { value: colors.spot.clone() },
-      uDeep: { value: new THREE.Color('#c2350a') },
-      uSheen: { value: new THREE.Color('#ffd9c4') },
+      // Fixed palette matching the reference: glossy salmon pink with a warm
+      // deep side and near-white sheen, independent of the page's spot colour.
+      uBody: { value: new THREE.Color('#f2a793') },
+      uDeep: { value: new THREE.Color('#e0765c') },
+      uSheen: { value: new THREE.Color('#fff3ec') },
     }),
-    // Colours are pushed in below; rebuilding this object would rebuild the
-    // material and reset every animated uniform.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
     []
   );
 
@@ -162,7 +161,6 @@ export function Blob({ scrollRef, pointerRef, quality }: BlobProps) {
       // finished shape is what the visitor reads there rather than a state
       // still mid-transition.
       mat.uniforms.uMorph.value = THREE.MathUtils.smoothstep(scrollRef.current, 0.18, 0.55);
-      mat.uniforms.uBody.value.copy(colors.spot);
     }
 
     const group = groupRef.current;

@@ -123,9 +123,9 @@ export const AboutSection: React.FC = () => {
       ref={sectionRef}
       id="about"
       aria-label="About"
-      className="bleed-spot relative z-20 pt-24 md:pt-36 pb-16 md:pb-20 px-6 md:px-10"
+      className="bleed-spot relative z-20 pt-20 md:pt-24 pb-14 md:pb-16 px-6 md:px-10"
     >
-      <div className="flex items-center gap-4 mb-14 md:mb-24">
+      <div className="flex items-center gap-4 mb-10 md:mb-14">
         <span className="label">[ About ]</span>
         <span className="rule-h flex-1" />
         <span className="label">Tehran / Remote</span>
@@ -206,7 +206,7 @@ export const AboutSection: React.FC = () => {
       </div>
 
       {/* Numbered capability rows */}
-      <div className="about-rows mt-20 md:mt-28">
+      <div className="about-rows mt-16 md:mt-20">
         <div className="flex items-baseline justify-between gap-6 mb-2">
           <span className="label">What I do</span>
           <span className="label">04 / disciplines</span>

@@ -99,7 +99,7 @@ export const ContactSection: React.FC = () => {
       ref={sectionRef}
       id="contact"
       aria-label="Contact"
-      className="bleed-spot relative z-20 overflow-hidden flex items-center px-6 md:px-10 pt-20 md:pt-24 pb-40 md:pb-56"
+      className="bleed-spot relative z-20 overflow-hidden flex items-center px-6 md:px-10 pt-16 md:pt-20 pb-24 md:pb-32"
     >
       {/* Portrait bled off the bottom-right of the whole section rather than
           boxed inside a panel — the plate's cells have no background of their

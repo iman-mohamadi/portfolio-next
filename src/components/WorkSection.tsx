@@ -10,6 +10,7 @@ import React, {
 } from 'react';
 import { gsap, ScrollTrigger, useGSAP } from '../lib/gsap';
 import { EncryptedText } from './motion/EncryptedText';
+import { PixelHoverBurst } from './motion/PixelHoverBurst';
 import { useReducedMotion } from '../hooks/useReducedMotion';
 
 // Case-study modals carry the heaviest dependencies on the page — the Woodcoder
@@ -307,7 +308,8 @@ export const WorkSection: React.FC = () => {
             </div>
 
             {/* Plate — every project stacked, wiped in over the last */}
-            <div className="col-span-6 relative bg-paper-deep overflow-hidden">
+            <div className="pixel-hover-host col-span-6 relative bg-paper-deep overflow-hidden">
+              <PixelHoverBurst />
               {PROJECTS.map((p, i) => (
                 <div key={p.key} className="absolute inset-0" style={{ zIndex: i + 1 }}>
                   <Plate
@@ -346,7 +348,8 @@ export const WorkSection: React.FC = () => {
                 <span className="label text-ink-faint text-right">{p.subtitle}</span>
               </div>
 
-              <div className="aspect-[4/3] border border-ink/25 bg-paper-deep overflow-hidden">
+              <div className="pixel-hover-host relative aspect-[4/3] border border-ink/25 bg-paper-deep overflow-hidden">
+                <PixelHoverBurst />
                 <img
                   src={p.image}
                   alt={`${p.title} interface`}

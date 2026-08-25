@@ -48,19 +48,15 @@
     </script>
 
     <script>
-      // Runs before first paint. Stored choice wins; otherwise follow the OS.
+      // Single fixed theme: dark only. Runs before first paint so the light
+      // tokens never flash.
       (function () {
         try {
-          var stored = localStorage.getItem('theme');
-          var dark = stored
-            ? stored === 'dark'
-            : window.matchMedia('(prefers-color-scheme: dark)').matches;
-          if (dark) {
-            document.documentElement.dataset.theme = 'dark';
-            var m = document.querySelector('meta[name="theme-color"]');
-            if (m) m.setAttribute('content', '#0d0d0d');
-          }
+          localStorage.removeItem('theme');
         } catch (e) {}
+        document.documentElement.dataset.theme = 'dark';
+        var m = document.querySelector('meta[name="theme-color"]');
+        if (m) m.setAttribute('content', '#0d0d0d');
       })();
     </script>
   </head>
