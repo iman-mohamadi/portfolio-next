@@ -107,8 +107,13 @@ export const ContactSection: React.FC = () => {
           than blended: the ground is painted by the fixed backdrop layer and
           this section opens its own stacking context, so a blend mode would
           have nothing behind it to blend with. */}
+      {/* Narrower at `lg` than it was, and sitting on the section floor rather
+          than 32px below it. The source is 848x1264, so width dictates height:
+          at 38% the image stood ~723px tall inside a ~715px section with
+          `overflow-hidden`, and the head was the part that got cut. 33% keeps
+          the whole figure inside the frame at this breakpoint. */}
       <div
-        className="contact-portrait pointer-events-none absolute right-0 -bottom-8 z-0 w-[78%] sm:w-[52%] lg:w-[38%] max-w-[620px]"
+        className="contact-portrait pointer-events-none absolute right-0 bottom-0 z-0 w-[78%] sm:w-[48%] lg:w-[33%] max-w-[540px]"
         aria-hidden="true"
       >
         <img

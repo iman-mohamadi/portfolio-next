@@ -4,6 +4,7 @@ import { ScrollTrigger } from './lib/gsap';
 import { Preloader } from './components/Preloader';
 import { CustomCursor } from './components/CustomCursor';
 import { RegistrationMarks } from './components/RegistrationMarks';
+import { IndexRail } from './components/IndexRail';
 import { ScrollBackdrop } from './components/ScrollBackdrop';
 import { Navbar } from './components/Navbar';
 import { HeroSection } from './components/HeroSection';
@@ -16,7 +17,7 @@ import { ContactSection } from './components/ContactSection';
 import { Footer } from './components/Footer';
 import { setAudioEnabled } from './utils/audioSynth';
 import { useUiSounds } from './hooks/useUiSounds';
-import { useIsPhone } from './hooks/useIsPhone';
+import { useLensEligible } from './hooks/useLensEligible';
 
 // Three.js is the heaviest thing on the page and nothing above the fold needs
 // it to render. Split it out of the entry bundle so first paint isn't waiting
@@ -43,7 +44,7 @@ export default function App() {
     setIsMenuOpen(true);
   }, []);
   const [isAudioActive, setIsAudioActive] = useState(false);
-  const isPhone = useIsPhone();
+  const lensEligible = useLensEligible();
   const [ready, setReady] = useState(false);
 
   // The side effect must live outside the updater: StrictMode invokes updaters
@@ -84,9 +85,11 @@ export default function App() {
 
       <Preloader onComplete={handleLoaded} />
 
-      {/* Phones render the hero in the DOM, so the renderer is never fetched —
-          that is ~190 kB gzip and a continuous GPU load saved on mobile. */}
-      <Suspense fallback={null}>{ready && !isPhone && <HeroCanvas />}</Suspense>
+      {/* Phones, reduced-motion and no-WebGL all render the wordmark in the DOM
+          instead, so the renderer is never fetched — that is ~190 kB gzip and a
+          continuous GPU load saved. `useLensEligible` is shared with
+          HeroSection so the two can never disagree about who owns the mark. */}
+      <Suspense fallback={null}>{ready && lensEligible && <HeroCanvas />}</Suspense>
 
       <CustomCursor />
 
@@ -98,6 +101,8 @@ export default function App() {
       />
 
       <RegistrationMarks />
+
+      <IndexRail />
 
       <main id="main" className="relative z-10 w-full">
         <HeroSection ready={ready} />

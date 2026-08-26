@@ -397,24 +397,31 @@
 }
 
 /* Softens a portrait into whatever ground is behind it, with no dependence on
-   a blend mode reaching a backdrop in another stacking context. The subject is
-   toward the upper right of the frame, so the falloff is centred there. */
-/* Every edge has to sit past the transparent stop or the plate's corner
-   survives as a hard line. With the centre at 55%/45%, the furthest edge is
-   55% away, so the gradient radius must stay under ~62% for that edge to
-   reach zero — a wider gradient left the left edge around half-opaque. */
+   a blend mode reaching a backdrop in another stacking context.
+
+   The centre is at 38% of the height, not the middle. The source is a
+   full-body standing portrait (848x1264), so the head occupies roughly the top
+   fifth of the frame — and the previous gradient, centred at 45% with its
+   transparent stop at 74%, put the head at 0.73 of the radius and erased it.
+   The subject appeared decapitated, which is a hard thing to un-see once
+   noticed.
+
+   Centring at 38% with an opaque core out to 45% puts the top edge at 0.45 of
+   the radius, so the head is fully inside the solid region. The falloff still
+   reaches zero on every edge before the frame does — required, or the image's
+   corner survives as a hard line against the ground. */
 .portrait-fade {
   -webkit-mask-image: radial-gradient(
-    62% 62% at 55% 45%,
-    #000 20%,
-    rgba(0, 0, 0, 0.5) 50%,
-    transparent 74%
+    80% 85% at 52% 38%,
+    #000 45%,
+    rgba(0, 0, 0, 0.55) 72%,
+    transparent 96%
   );
   mask-image: radial-gradient(
-    62% 62% at 55% 45%,
-    #000 20%,
-    rgba(0, 0, 0, 0.5) 50%,
-    transparent 74%
+    80% 85% at 52% 38%,
+    #000 45%,
+    rgba(0, 0, 0, 0.55) 72%,
+    transparent 96%
   );
 }
 
@@ -563,8 +570,19 @@
   transform: scaleX(1);
 }
 
-/* On the orange ground the bar is near-black, so everything on top of it has
-   to invert or it vanishes into the bar. */
+/* On the orange ground the bar must be near-black, and it has to be pinned to
+   an explicit value rather than to `--color-ink`.
+
+   `ink` is a role, not a colour: it is #0a0a0a on the light ground and #eceae4
+   on the dark one. The rules below dress the row's contents for a *dark* bar —
+   the title flips to the orange spot, the supporting copy to near-white — so
+   under the dark theme, where `ink` resolves to near-white, the bar came up
+   white with white text on it and the row became unreadable on hover.
+   `--color-on-spot` is the one token that means "the ink that goes on orange"
+   in both themes, which is exactly what this bar is. */
+.bleed-spot .sweep-row::before {
+  background: var(--color-on-spot);
+}
 .bleed-spot .sweep-row:hover .row-title,
 .bleed-spot .sweep-row:focus-within .row-title {
   color: var(--color-spot);
@@ -666,6 +684,59 @@
   color: var(--color-ink-faint);
   text-transform: uppercase;
   letter-spacing: 0.12em;
+}
+
+/* ============================================================================
+   CURSOR
+
+   Every colour here resolves through `--on-ground`, which ScrollBackdrop
+   rewrites as the ground changes. Hardcoding a colour is not an option: the
+   page has a near-black ground and a full-bleed orange one, and nothing is
+   legible on both. Geometry is animated by GSAP; colour is left to CSS so the
+   two never fight over the same property.
+   ============================================================================ */
+.cursor-dot {
+  background: var(--on-ground);
+  transition: background-color 0.18s linear;
+}
+
+.cursor-ring {
+  border-color: color-mix(in srgb, var(--on-ground) 45%, transparent);
+  transition:
+    border-color 0.3s var(--ease-lift),
+    background-color 0.3s var(--ease-lift);
+}
+
+.cursor-ring.is-over {
+  border-color: var(--on-ground);
+  background-color: color-mix(in srgb, var(--on-ground) 8%, transparent);
+}
+
+.cursor-label {
+  color: var(--on-ground);
+}
+
+/* ============================================================================
+   SECTION RAIL
+   Fixed, so it crosses both grounds and takes its colour from the same source
+   the cursor does.
+   ============================================================================ */
+.rail-tick {
+  color: color-mix(in srgb, var(--on-ground) 45%, transparent);
+  transition: color 0.3s var(--ease-lift);
+}
+.rail-item:hover .rail-tick {
+  color: color-mix(in srgb, var(--on-ground) 75%, transparent);
+}
+.rail-item.is-active .rail-tick {
+  color: var(--on-ground);
+}
+
+.rail-track {
+  background: color-mix(in srgb, var(--on-ground) 22%, transparent);
+}
+.rail-progress {
+  background: var(--on-ground);
 }
 
 .skip-link {
