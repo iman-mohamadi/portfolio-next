@@ -100,6 +100,9 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ ready }) => {
       aria-label="Introduction"
       className="relative min-h-[100svh] flex flex-col justify-between overflow-hidden pt-16 pb-8"
     >
+      {/* Holographic grid overlay */}
+      <div className="cyber-grid" aria-hidden="true" />
+
       <h1 className="sr-only">
         Iman Mohammadi — creative engineer building interfaces, design systems and
         real-time graphics for the web
@@ -160,7 +163,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ ready }) => {
 
         <div className="hero-meta mt-6 flex items-center justify-between gap-6">
           <button onClick={() => scrollTo('#about')} className="btn-box" data-cursor="active">
-            <span className="w-1.5 h-1.5 rounded-full bg-spot" aria-hidden="true" />
+            <span className="w-1.5 h-1.5 rounded-full bg-neon led-pulse" aria-hidden="true" />
             Scroll
           </button>
           <a

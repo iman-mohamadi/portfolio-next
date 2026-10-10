@@ -96,7 +96,7 @@ export const HeroMusicPlayer: React.FC<{ className?: string }> = ({ className = 
         <div className="absolute left-0 right-0 top-1/2 h-px bg-ink/40" />
         <div
           ref={fillRef}
-          className="absolute left-0 right-0 top-1/2 h-px bg-spot origin-left"
+          className="absolute left-0 right-0 top-1/2 h-px bg-neon origin-left"
           style={{ transform: 'scaleX(0)' }}
         />
         <span
@@ -110,7 +110,7 @@ export const HeroMusicPlayer: React.FC<{ className?: string }> = ({ className = 
         <button
           type="button"
           onClick={toggle}
-          className="w-4 h-4 flex items-center justify-center text-spot"
+          className="w-4 h-4 flex items-center justify-center text-neon"
           aria-label={playing ? 'Pause music' : `Play ${TRACKS[current].label}`}
           data-cursor="active"
         >
@@ -144,7 +144,7 @@ export const HeroMusicPlayer: React.FC<{ className?: string }> = ({ className = 
             data-cursor="active"
           >
             <span
-              className={`block h-px w-5 ${i === current ? 'bg-spot' : 'bg-ink/40'}`}
+              className={`block h-px w-5 ${i === current ? 'bg-neon' : 'bg-ink/40'}`}
               aria-hidden="true"
             />
             {track.label}

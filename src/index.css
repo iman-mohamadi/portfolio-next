@@ -2,28 +2,29 @@
 @import "lenis/dist/lenis.css";
 
 /* ============================================================================
-   DESIGN TOKENS
-   Warm light grey ground, near-black ink, one saturated orange used at full
-   bleed rather than as a trim. Type is a single variable grotesk pushed to its
-   width and weight extremes for display, with a mono for every micro-label.
+   DESIGN TOKENS — BLADE RUNNER 2049 CYBERPUNK
+   Deep void space, warm amber indoor zones, cold electric cyan.
+   Two neon poles: --color-neon (amber) and --color-neon-cold (cyan).
+   Three ground states: paper (void night), spot (dark ember interior),
+   ink (inverted for the quote panel).
    ============================================================================ */
 @theme {
-  --color-paper: #e9e8e4;
-  --color-paper-dim: #dfdeda;
-  --color-paper-deep: #d4d3ce;
-  --color-ink: #0a0a0a;
-  --color-ink-soft: #3a3a38;
-  --color-ink-faint: #77766f;
-  --color-rule: #c3c2bc;
-  --color-spot: #ff5a1e;
-  --color-on-spot: #0a0a0a;
+  --color-paper: #06090e;
+  --color-paper-dim: #0b0f18;
+  --color-paper-deep: #10151f;
+  --color-ink: #bec8d4;
+  --color-ink-soft: #586878;
+  --color-ink-faint: #2c3a48;
+  --color-rule: #182030;
+  --color-spot: #120b05;
+  --color-on-spot: #d8b888;
+  --color-neon: #ff7a1e;
+  --color-neon-cold: #18bcd8;
 
   --font-display: "Archivo", ui-sans-serif, system-ui, sans-serif;
   --font-body: "Archivo", ui-sans-serif, system-ui, sans-serif;
   --font-mono-tech: "JetBrains Mono", ui-monospace, monospace;
 
-  /* Display sizes are deliberately viewport-bound with almost no floor: the
-     hero words are meant to touch both edges of the frame at every width. */
   --text-display-xl: clamp(3.5rem, 15.5vw, 16rem);
   --text-display-lg: clamp(2.75rem, 10vw, 9rem);
   --text-display-md: clamp(1.75rem, 4vw, 3.25rem);
@@ -34,26 +35,24 @@
 }
 
 /* ============================================================================
-   DARK GROUND
-   Token names are roles: `paper` is always the ground, `ink` always the figure,
-   so the whole site inverts by redefining variables — no `dark:` variants.
+   DEEPER VOID — for OS dark preference
    ============================================================================ */
 :root[data-theme='dark'] {
-  --color-paper: #0d0d0d;
-  --color-paper-dim: #151513;
-  --color-paper-deep: #1f1f1c;
-  --color-ink: #eceae4;
-  --color-ink-soft: #a3a29b;
-  --color-ink-faint: #6e6d67;
-  --color-rule: #2b2b28;
-  --color-spot: #ff6a30;
+  --color-paper: #030508;
+  --color-paper-dim: #070c14;
+  --color-paper-deep: #0c1118;
+  --color-ink: #c8d4e0;
+  --color-ink-soft: #5e7285;
+  --color-ink-faint: #2c3a48;
+  --color-rule: #102030;
+  --color-spot: #0e0803;
+  --color-on-spot: #d8b888;
+  --color-neon: #ff8a2e;
+  --color-neon-cold: #1cc8e0;
 }
 
 /* The legible foreground for whichever ground the block wipe currently has on
-   screen. ScrollBackdrop rewrites this as it crosses a boundary, so type over
-   a changing ground can track it instead of being hardcoded to one token and
-   disappearing when the ground becomes that same token. Defaults to ink,
-   which is correct everywhere the ground is paper. */
+   screen. ScrollBackdrop rewrites this as it crosses a boundary. */
 :root {
   --on-ground: var(--color-ink);
 }
@@ -65,14 +64,13 @@
 
 @layer base {
   :root {
-    color-scheme: light;
+    color-scheme: dark;
   }
   :root[data-theme='dark'] {
     color-scheme: dark;
   }
 
   html {
-    /* Lenis owns scrolling; native smooth behaviour would fight it. */
     scroll-behavior: auto;
     -webkit-text-size-adjust: 100%;
   }
@@ -87,18 +85,18 @@
   }
 
   :focus-visible {
-    outline: 2px solid var(--color-spot);
+    outline: 2px solid var(--color-neon);
     outline-offset: 3px;
     border-radius: 1px;
   }
 
   ::selection {
-    background: var(--color-spot);
-    color: #0a0a0a;
+    background: var(--color-neon);
+    color: #06090e;
   }
 
   ::-webkit-scrollbar {
-    width: 3px;
+    width: 2px;
   }
   ::-webkit-scrollbar-track {
     background: var(--color-paper);
@@ -107,7 +105,7 @@
     background: var(--color-rule);
   }
   ::-webkit-scrollbar-thumb:hover {
-    background: var(--color-spot);
+    background: var(--color-neon);
   }
 
   @media (pointer: fine) {
@@ -120,50 +118,33 @@
 
 /* ============================================================================
    TYPOGRAPHY
-   Archivo carries a real width axis, so display type is set wide and heavy
-   from the same family as the body — no second face needed.
    ============================================================================ */
-.font-display {
-  font-family: var(--font-display);
-}
-.font-body {
-  font-family: var(--font-body);
-}
-.font-mono-tech {
-  font-family: var(--font-mono-tech);
-}
+.font-display { font-family: var(--font-display); }
+.font-body { font-family: var(--font-body); }
+.font-mono-tech { font-family: var(--font-mono-tech); }
 
 .display {
   font-family: var(--font-display);
   font-variation-settings: 'wdth' 118, 'wght' 800;
   text-transform: uppercase;
   line-height: 0.82;
-  /* Tracking is size-specific: display type reads too loose as it grows. */
   letter-spacing: -0.025em;
 }
 
-.text-display-xl {
-  font-size: var(--text-display-xl);
-}
+.text-display-xl { font-size: var(--text-display-xl); }
 
-/* The edge-to-edge fit only works down to the width the widest hero word
-   ("Engineer") allows at 800 weight / 118 extended — below that the vw clamp
-   overflows and clips against the section edge. */
 @media (max-width: 640px) {
   .text-display-xl {
     font-size: clamp(2.5rem, 13.2vw, 3.15rem);
   }
 }
-.text-display-lg {
-  font-size: var(--text-display-lg);
-}
+.text-display-lg { font-size: var(--text-display-lg); }
 .text-display-md {
   font-size: var(--text-display-md);
   line-height: 1;
   letter-spacing: -0.02em;
 }
 
-/* Row headings in the capability/manifest lists — normal width, not extended. */
 .row-title {
   font-family: var(--font-display);
   font-variation-settings: 'wdth' 100, 'wght' 500;
@@ -172,7 +153,6 @@
   line-height: 1.05;
 }
 
-/* Every micro-label on the site: mono, uppercase, wide tracking. */
 .label {
   font-family: var(--font-mono-tech);
   font-size: clamp(0.5625rem, 0.75vw, 0.6875rem);
@@ -182,7 +162,6 @@
   line-height: 1.5;
 }
 
-/* Bracketed index used down the left edge of list rows: [01] */
 .index-mark {
   font-family: var(--font-mono-tech);
   font-size: clamp(0.5625rem, 0.75vw, 0.6875rem);
@@ -190,7 +169,6 @@
   color: var(--color-ink-faint);
 }
 
-/* The oversized ordinal that anchors each study / project. */
 .ordinal {
   font-family: var(--font-display);
   font-variation-settings: 'wdth' 112, 'wght' 700;
@@ -199,9 +177,7 @@
   letter-spacing: -0.03em;
 }
 
-.text-balance-tight {
-  text-wrap: balance;
-}
+.text-balance-tight { text-wrap: balance; }
 
 /* ============================================================================
    SPLIT TEXT REVEAL
@@ -213,14 +189,10 @@
   margin-bottom: -0.12em;
 }
 
-.reveal-pending {
-  visibility: hidden;
-}
+.reveal-pending { visibility: hidden; }
 
 /* ============================================================================
-   REGISTRATION MARKS & RULES
-   Crosshairs at the frame corners and edge midpoints — a print register mark,
-   drawn with two gradients so it costs no elements.
+   REGISTRATION MARKS — electric cyan crosshairs
    ============================================================================ */
 .reg-mark {
   position: fixed;
@@ -228,9 +200,9 @@
   height: 13px;
   pointer-events: none;
   z-index: 45;
-  opacity: 0.55;
-  background-image: linear-gradient(var(--color-ink), var(--color-ink)),
-    linear-gradient(var(--color-ink), var(--color-ink));
+  opacity: 0.4;
+  background-image: linear-gradient(var(--color-neon-cold), var(--color-neon-cold)),
+    linear-gradient(var(--color-neon-cold), var(--color-neon-cold));
   background-size: 100% 1px, 1px 100%;
   background-position: center center, center center;
   background-repeat: no-repeat;
@@ -248,66 +220,157 @@
   background: var(--color-ink);
 }
 
-/* Full-bleed orange block. Content on it flips to ink, never to white.
-   No background of its own — ScrollBackdrop paints the actual colour behind
-   every section so the paper↔spot handoff can blend across a scroll instead
-   of cutting hard at this element's edge. */
+/* ============================================================================
+   DARK EMBER ZONE — bleed-spot
+   The amber interior: dark warm ground, gold text, neon amber accents.
+   ============================================================================ */
 .bleed-spot {
   color: var(--color-on-spot);
 }
 .bleed-spot .label,
 .bleed-spot .index-mark {
-  color: rgba(10, 10, 10, 0.72);
+  color: rgba(216, 184, 136, 0.65);
 }
 .bleed-spot .rule-h,
 .bleed-spot .rule-ink {
-  background: rgba(10, 10, 10, 0.28);
+  background: rgba(216, 184, 136, 0.18);
 }
 .bleed-spot .reg-mark {
-  background-image: linear-gradient(#0a0a0a, #0a0a0a), linear-gradient(#0a0a0a, #0a0a0a);
+  background-image: linear-gradient(var(--color-on-spot), var(--color-on-spot)),
+    linear-gradient(var(--color-on-spot), var(--color-on-spot));
+  opacity: 0.35;
+}
+
+/* Amber-bordered button on the dark ember ground. */
+.bleed-spot .btn-box {
+  border-color: rgba(216, 184, 136, 0.35);
+  color: var(--color-on-spot);
+  text-shadow: none;
+  box-shadow: none;
+}
+.bleed-spot .btn-box:hover,
+.bleed-spot .btn-box:focus-visible {
+  background: rgba(255, 122, 30, 0.12);
+  border-color: var(--color-neon);
+  color: var(--color-neon);
+  box-shadow: 0 0 14px rgba(255, 122, 30, 0.3), inset 0 0 14px rgba(255, 122, 30, 0.05);
+  text-shadow: 0 0 10px rgba(255, 122, 30, 0.5);
+}
+.bleed-spot .btn-box:active {
+  transform: scale(0.98);
+  transition: transform 90ms ease-out;
+}
+
+.bleed-spot .plate-frame::before,
+.bleed-spot .plate-frame::after {
+  background-image: linear-gradient(var(--color-on-spot), var(--color-on-spot)),
+    linear-gradient(var(--color-on-spot), var(--color-on-spot));
+}
+
+/* Sweep-row hover: amber bar, neon title. */
+.bleed-spot .sweep-row::before {
+  background: rgba(216, 184, 136, 0.08);
+}
+.bleed-spot .sweep-row:hover .row-title,
+.bleed-spot .sweep-row:focus-within .row-title {
+  color: var(--color-neon);
+}
+.bleed-spot .sweep-row:hover .sweep-dim,
+.bleed-spot .sweep-row:focus-within .sweep-dim {
+  color: rgba(216, 184, 136, 0.85);
+}
+.bleed-spot .sweep-row:hover .label,
+.bleed-spot .sweep-row:focus-within .label,
+.bleed-spot .sweep-row:hover .index-mark,
+.bleed-spot .sweep-row:focus-within .index-mark {
+  color: rgba(216, 184, 136, 0.6);
+}
+.bleed-spot .sweep-row .row-title,
+.bleed-spot .sweep-row .label,
+.bleed-spot .sweep-row .index-mark,
+.bleed-spot .sweep-row .sweep-dim {
+  transition: color 0.45s var(--ease-page);
+}
+.bleed-spot .sweep-chip {
+  border-color: rgba(216, 184, 136, 0.22);
+  transition: border-color 0.45s var(--ease-page), opacity 0.5s var(--ease-page),
+    background 0.5s var(--ease-page);
+}
+.bleed-spot .sweep-row:hover .sweep-chip,
+.bleed-spot .sweep-row:focus-within .sweep-chip {
+  border-color: rgba(216, 184, 136, 0.4);
 }
 
 /* ============================================================================
-   PAPER TEXTURE
+   SCANLINE GRAIN — replaces paper texture with CRT scanlines + noise
    ============================================================================ */
 .paper-grain {
   position: fixed;
-  /* Just enough overdraw to cover the largest jitter below (±3%). The layer
-     is blended over the whole page every frame, so its area is pure GPU cost:
-     at 400% it was sixteen viewports of multiply per frame. */
   inset: -10%;
   width: 120%;
   height: 120%;
   pointer-events: none;
   z-index: 9998;
-  opacity: 0.5;
-  mix-blend-mode: multiply;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.3'/%3E%3C/svg%3E");
+  opacity: 0.45;
+  mix-blend-mode: screen;
+  background-image:
+    repeating-linear-gradient(
+      0deg,
+      transparent 0px,
+      transparent 2px,
+      rgba(0, 60, 120, 0.07) 2px,
+      rgba(0, 60, 120, 0.07) 4px
+    ),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.18'/%3E%3C/svg%3E");
   animation: grain-shift 0.9s steps(4) infinite;
   will-change: transform;
 }
 
 :root[data-theme='dark'] .paper-grain {
   mix-blend-mode: screen;
-  opacity: 0.14;
+  opacity: 0.35;
 }
 
 @keyframes grain-shift {
-  0% {
-    transform: translate3d(0, 0, 0);
-  }
-  25% {
-    transform: translate3d(-3%, 2%, 0);
-  }
-  50% {
-    transform: translate3d(2%, -3%, 0);
-  }
-  75% {
-    transform: translate3d(-2%, -2%, 0);
-  }
-  100% {
-    transform: translate3d(0, 0, 0);
-  }
+  0%   { transform: translate3d(0, 0, 0); }
+  25%  { transform: translate3d(-3%, 2%, 0); }
+  50%  { transform: translate3d(2%, -3%, 0); }
+  75%  { transform: translate3d(-2%, -2%, 0); }
+  100% { transform: translate3d(0, 0, 0); }
+}
+
+/* ============================================================================
+   CYBER GRID — holographic perspective grid for hero section
+   ============================================================================ */
+.cyber-grid {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image:
+    linear-gradient(rgba(24, 188, 216, 0.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(24, 188, 216, 0.035) 1px, transparent 1px);
+  background-size: 64px 64px;
+  mask-image: radial-gradient(ellipse 80% 90% at 50% 50%, black 30%, transparent 100%);
+}
+
+/* ============================================================================
+   NEON GLOW UTILITIES
+   ============================================================================ */
+.neon-glow-amber {
+  text-shadow: 0 0 18px rgba(255, 122, 30, 0.65), 0 0 50px rgba(255, 122, 30, 0.2);
+}
+.neon-glow-cyan {
+  text-shadow: 0 0 18px rgba(24, 188, 216, 0.65), 0 0 50px rgba(24, 188, 216, 0.2);
+}
+
+/* LED dot pulse */
+.led-pulse {
+  animation: led-beat 2.5s ease-in-out infinite;
+  box-shadow: 0 0 6px currentColor, 0 0 12px currentColor;
+}
+@keyframes led-beat {
+  0%, 100% { opacity: 1; box-shadow: 0 0 6px currentColor, 0 0 12px currentColor; }
+  50%       { opacity: 0.65; box-shadow: 0 0 3px currentColor, 0 0 6px currentColor; }
 }
 
 /* ============================================================================
@@ -335,44 +398,36 @@
   transform-origin: left center;
 }
 
-/* Boxed mono button — the site's only button shape. */
+/* Cyan neon button — the site's default CTA shape on the dark void ground. */
 .btn-box {
   font-family: var(--font-mono-tech);
   font-size: 0.6875rem;
   letter-spacing: 0.14em;
   text-transform: uppercase;
   padding: 0.75rem 1.1rem;
-  border: 1px solid var(--color-ink);
-  color: var(--color-ink);
+  border: 1px solid rgba(24, 188, 216, 0.3);
+  color: var(--color-neon-cold);
   display: inline-flex;
   align-items: center;
   gap: 0.6rem;
-  transition: background 0.35s var(--ease-page), color 0.35s var(--ease-page);
+  transition: background 0.35s var(--ease-page), color 0.35s var(--ease-page),
+    box-shadow 0.35s var(--ease-page), border-color 0.35s var(--ease-page);
+  text-shadow: 0 0 8px rgba(24, 188, 216, 0.3);
 }
 .btn-box:hover,
 .btn-box:focus-visible {
-  background: var(--color-ink);
-  color: var(--color-paper);
+  background: rgba(24, 188, 216, 0.07);
+  border-color: var(--color-neon-cold);
+  color: var(--color-neon-cold);
+  box-shadow: 0 0 14px rgba(24, 188, 216, 0.25), inset 0 0 14px rgba(24, 188, 216, 0.04);
+  text-shadow: 0 0 12px rgba(24, 188, 216, 0.5);
 }
-/* Instant press feedback — waiting for click reads as dead. */
 .btn-box:active {
   transform: scale(0.98);
   transition: transform 90ms ease-out;
 }
 
-.bleed-spot .btn-box {
-  border-color: #0a0a0a;
-  color: #0a0a0a;
-}
-.bleed-spot .btn-box:hover,
-.bleed-spot .btn-box:focus-visible {
-  background: #0a0a0a;
-  color: var(--color-spot);
-}
-
-/* Bordered plate with solid marks at its corners — the crop marks a printer
-   would set around a trimmed panel. Drawn with a repeating background rather
-   than four elements so the marks cannot drift out of the corners. */
+/* Crop-mark corners on the contact plate frame. */
 .plate-frame {
   position: relative;
 }
@@ -384,32 +439,17 @@
   right: -4px;
   height: 9px;
   pointer-events: none;
-  background-image: linear-gradient(#0a0a0a, #0a0a0a), linear-gradient(#0a0a0a, #0a0a0a);
+  background-image: linear-gradient(var(--color-neon-cold), var(--color-neon-cold)),
+    linear-gradient(var(--color-neon-cold), var(--color-neon-cold));
   background-size: 9px 9px;
   background-repeat: no-repeat;
   background-position: left center, right center;
+  opacity: 0.5;
 }
-.plate-frame::before {
-  top: -4px;
-}
-.plate-frame::after {
-  bottom: -4px;
-}
+.plate-frame::before { top: -4px; }
+.plate-frame::after  { bottom: -4px; }
 
-/* Softens a portrait into whatever ground is behind it, with no dependence on
-   a blend mode reaching a backdrop in another stacking context.
-
-   The centre is at 38% of the height, not the middle. The source is a
-   full-body standing portrait (848x1264), so the head occupies roughly the top
-   fifth of the frame — and the previous gradient, centred at 45% with its
-   transparent stop at 74%, put the head at 0.73 of the radius and erased it.
-   The subject appeared decapitated, which is a hard thing to un-see once
-   noticed.
-
-   Centring at 38% with an opaque core out to 45% puts the top edge at 0.45 of
-   the radius, so the head is fully inside the solid region. The falloff still
-   reaches zero on every edge before the frame does — required, or the image's
-   corner survives as a hard line against the ground. */
+/* Portrait radial fade. */
 .portrait-fade {
   -webkit-mask-image: radial-gradient(
     80% 85% at 52% 38%,
@@ -428,11 +468,8 @@
 /* ============================================================================
    TOOLS STUDIES
    ============================================================================ */
-
-/* 001 — mirrored type with the colour channels drifting apart. The mirroring
-   is per-line, so the stack reads as a reflection rather than three copies. */
 .chroma-line {
-  color: #f2f1ec;
+  color: #bec8d4;
   transform: scaleY(-1);
   animation: chroma-split 4.2s ease-in-out infinite;
   will-change: text-shadow, transform;
@@ -442,22 +479,20 @@
 }
 
 @keyframes chroma-split {
-  0%,
-  100% {
-    text-shadow: 0 0 0 rgba(255, 90, 30, 0), 0 0 0 rgba(0, 200, 255, 0);
+  0%, 100% {
+    text-shadow: 0 0 0 rgba(255, 122, 30, 0), 0 0 0 rgba(24, 188, 216, 0);
   }
   50% {
-    text-shadow: -0.06em 0 0 rgba(255, 90, 30, 0.9), 0.06em 0 0 rgba(0, 200, 255, 0.9);
+    text-shadow: -0.06em 0 0 rgba(255, 122, 30, 0.9), 0.06em 0 0 rgba(24, 188, 216, 0.9);
   }
 }
 
-/* 002 — outlined type with a stripe mask sweeping across it. */
 .split-mask {
   color: transparent;
-  -webkit-text-stroke: 1px #f2f1ec;
+  -webkit-text-stroke: 1px #bec8d4;
   background-image: repeating-linear-gradient(
     -12deg,
-    #f2f1ec 0 6px,
+    #bec8d4 0 6px,
     transparent 6px 14px
   );
   background-size: 200% 100%;
@@ -467,12 +502,8 @@
 }
 
 @keyframes split-sweep {
-  from {
-    background-position: 0% 0;
-  }
-  to {
-    background-position: 200% 0;
-  }
+  from { background-position: 0% 0; }
+  to   { background-position: 200% 0; }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -482,7 +513,6 @@
   }
 }
 
-/* The Tools reel's rolling stacks and pixel-burst slide swap. */
 .tools-roll-mask {
   overflow: hidden;
 }
@@ -499,23 +529,15 @@
   animation-delay: var(--flash-delay, 0s);
 }
 @keyframes tools-cell-flash {
-  0% {
-    visibility: visible;
-  }
-  100% {
-    visibility: hidden;
-  }
+  0%   { visibility: visible; }
+  100% { visibility: hidden; }
 }
 @media (prefers-reduced-motion: reduce) {
-  .tools-roll {
-    transition: none;
-  }
-  .tools-flash.is-flashing .tools-flash-cell {
-    animation: none;
-  }
+  .tools-roll { transition: none; }
+  .tools-flash.is-flashing .tools-flash-cell { animation: none; }
 }
 
-/* Hero music player: the playlist stays folded until the player is engaged. */
+/* Music player. */
 .music-playlist {
   opacity: 0;
   transform: translateY(4px);
@@ -528,18 +550,11 @@
   transform: translateY(0);
   pointer-events: auto;
 }
-
 @media (prefers-reduced-motion: reduce) {
-  .music-playlist {
-    transition: none;
-  }
+  .music-playlist { transition: none; }
 }
 
-/* Row hover: an ink bar wipes across the whole row from the left and the
-   title flips to the spot colour. Used by the numbered lists in About and
-   Tools — on the orange ground this is the only hover state on the page that
-   changes more than one property, which is why the rows read as the primary
-   thing to interact with. */
+/* Sweep row — used in About and Tools on the amber ground. */
 .sweep-row {
   position: relative;
   isolation: isolate;
@@ -547,8 +562,6 @@
 .sweep-row::before {
   content: "";
   position: absolute;
-  /* Bleeds past the page gutter so the bar runs edge to edge, the way a
-     printed rule would, rather than stopping at the text column. */
   left: -1.5rem;
   right: -1.5rem;
   top: 0;
@@ -569,33 +582,10 @@
 .sweep-row:focus-within::before {
   transform: scaleX(1);
 }
-
-/* On the orange ground the bar must be near-black, and it has to be pinned to
-   an explicit value rather than to `--color-ink`.
-
-   `ink` is a role, not a colour: it is #0a0a0a on the light ground and #eceae4
-   on the dark one. The rules below dress the row's contents for a *dark* bar —
-   the title flips to the orange spot, the supporting copy to near-white — so
-   under the dark theme, where `ink` resolves to near-white, the bar came up
-   white with white text on it and the row became unreadable on hover.
-   `--color-on-spot` is the one token that means "the ink that goes on orange"
-   in both themes, which is exactly what this bar is. */
-.bleed-spot .sweep-row::before {
-  background: var(--color-on-spot);
-}
-.bleed-spot .sweep-row:hover .row-title,
-.bleed-spot .sweep-row:focus-within .row-title {
-  color: var(--color-spot);
-}
-.bleed-spot .sweep-row:hover .sweep-dim,
-.bleed-spot .sweep-row:focus-within .sweep-dim {
-  color: rgba(242, 241, 236, 0.72);
-}
-.bleed-spot .sweep-row:hover .label,
-.bleed-spot .sweep-row:focus-within .label,
-.bleed-spot .sweep-row:hover .index-mark,
-.bleed-spot .sweep-row:focus-within .index-mark {
-  color: rgba(242, 241, 236, 0.6);
+/* Sweep row in the non-spot context (shouldn't normally appear on paper bg
+   but keep the rules as a safe fallback). */
+.sweep-row:not(.bleed-spot *):hover .row-title {
+  color: var(--color-paper);
 }
 .sweep-row .row-title,
 .sweep-row .label,
@@ -603,49 +593,43 @@
 .sweep-row .sweep-dim {
   transition: color 0.45s var(--ease-page);
 }
-
-/* Bordered tags inside a sweeping row: the border has to invert with the
-   text, or it disappears into the bar and the chips lose their shape. */
 .sweep-chip {
-  border-color: rgba(10, 10, 10, 0.3);
+  border-color: rgba(24, 188, 216, 0.2);
   transition: border-color 0.45s var(--ease-page), opacity 0.5s var(--ease-page),
     background 0.5s var(--ease-page);
 }
 .sweep-row:hover .sweep-chip,
 .sweep-row:focus-within .sweep-chip {
-  border-color: rgba(242, 241, 236, 0.45);
+  border-color: rgba(24, 188, 216, 0.4);
 }
-
 @media (prefers-reduced-motion: reduce) {
-  .sweep-row::before {
-    transition: none;
-  }
+  .sweep-row::before { transition: none; }
 }
 
-/* CSS stand-in for the WebGL hero object on phones, which never mount the
-   renderer. Two offset radial gradients — a broad body and a tight specular —
-   give it the same key-from-upper-left read as the shader. */
+/* ============================================================================
+   HERO ORB — cyan holographic sphere for phone / no-WebGL fallback
+   ============================================================================ */
 .hero-orb {
   border-radius: 52% 48% 45% 55% / 50% 44% 56% 50%;
   background:
     radial-gradient(
       42% 38% at 34% 28%,
-      rgba(255, 217, 196, 0.95) 0%,
-      rgba(255, 217, 196, 0) 60%
+      rgba(140, 220, 255, 0.6) 0%,
+      rgba(140, 220, 255, 0) 60%
     ),
     radial-gradient(
       circle at 38% 32%,
-      #f2a793 0%,
-      #f2a793 34%,
-      #e0765c 100%
+      #1890c0 0%,
+      #1060a0 34%,
+      #083060 100%
     );
+  box-shadow: 0 0 60px rgba(24, 144, 192, 0.4), 0 0 120px rgba(24, 100, 192, 0.15);
   animation: orb-drift 14s ease-in-out infinite;
   will-change: transform, border-radius;
 }
 
 @keyframes orb-drift {
-  0%,
-  100% {
+  0%, 100% {
     border-radius: 52% 48% 45% 55% / 50% 44% 56% 50%;
     transform: rotate(0deg);
   }
@@ -654,18 +638,18 @@
     transform: rotate(6deg);
   }
 }
-
 @media (prefers-reduced-motion: reduce) {
-  .hero-orb {
-    animation: none;
-  }
+  .hero-orb { animation: none; }
 }
 
+/* ============================================================================
+   FORM FIELD — terminal aesthetic
+   ============================================================================ */
 .field-input {
   background: transparent;
   border: none;
-  border-bottom: 1px solid var(--color-rule);
-  color: var(--color-ink);
+  border-bottom: 1px solid rgba(24, 188, 216, 0.2);
+  color: var(--color-on-spot);
   padding: 0.9rem 0;
   width: 100%;
   font-family: var(--font-mono-tech);
@@ -675,70 +659,69 @@
 }
 .field-input:focus {
   outline: none;
-  border-bottom-color: var(--color-ink);
+  border-bottom-color: var(--color-neon);
+  box-shadow: 0 2px 0 0 rgba(255, 122, 30, 0.15);
 }
 .field-input:focus-visible {
   outline: none;
 }
 .field-input::placeholder {
-  color: var(--color-ink-faint);
+  color: rgba(216, 184, 136, 0.4);
   text-transform: uppercase;
   letter-spacing: 0.12em;
 }
 
 /* ============================================================================
-   CURSOR
-
-   Every colour here resolves through `--on-ground`, which ScrollBackdrop
-   rewrites as the ground changes. Hardcoding a colour is not an option: the
-   page has a near-black ground and a full-bleed orange one, and nothing is
-   legible on both. Geometry is animated by GSAP; colour is left to CSS so the
-   two never fight over the same property.
+   CURSOR — amber dot, cyan ring
    ============================================================================ */
 .cursor-dot {
-  background: var(--on-ground);
+  background: var(--color-neon);
+  box-shadow: 0 0 6px var(--color-neon), 0 0 12px rgba(255, 122, 30, 0.4);
   transition: background-color 0.18s linear;
 }
 
 .cursor-ring {
-  border-color: color-mix(in srgb, var(--on-ground) 45%, transparent);
+  border-color: rgba(24, 188, 216, 0.35);
   transition:
     border-color 0.3s var(--ease-lift),
-    background-color 0.3s var(--ease-lift);
+    background-color 0.3s var(--ease-lift),
+    box-shadow 0.3s var(--ease-lift);
 }
 
 .cursor-ring.is-over {
-  border-color: var(--on-ground);
-  background-color: color-mix(in srgb, var(--on-ground) 8%, transparent);
+  border-color: var(--color-neon-cold);
+  background-color: rgba(24, 188, 216, 0.05);
+  box-shadow: 0 0 10px rgba(24, 188, 216, 0.2);
 }
 
 .cursor-label {
-  color: var(--on-ground);
+  color: var(--color-neon-cold);
 }
 
 /* ============================================================================
-   SECTION RAIL
-   Fixed, so it crosses both grounds and takes its colour from the same source
-   the cursor does.
+   SECTION RAIL — tracks the `--on-ground` foreground
    ============================================================================ */
 .rail-tick {
-  color: color-mix(in srgb, var(--on-ground) 45%, transparent);
+  color: color-mix(in srgb, var(--on-ground) 40%, transparent);
   transition: color 0.3s var(--ease-lift);
 }
 .rail-item:hover .rail-tick {
-  color: color-mix(in srgb, var(--on-ground) 75%, transparent);
+  color: color-mix(in srgb, var(--on-ground) 70%, transparent);
 }
 .rail-item.is-active .rail-tick {
   color: var(--on-ground);
 }
 
 .rail-track {
-  background: color-mix(in srgb, var(--on-ground) 22%, transparent);
+  background: color-mix(in srgb, var(--on-ground) 18%, transparent);
 }
 .rail-progress {
   background: var(--on-ground);
 }
 
+/* ============================================================================
+   SKIP LINK
+   ============================================================================ */
 .skip-link {
   position: fixed;
   top: 0;
@@ -751,16 +734,11 @@
   transform: translateY(0);
 }
 
+/* EQ bars for audio toggle. */
 @keyframes eq-bounce {
-  0%,
-  100% {
-    height: 3px;
-  }
-  50% {
-    height: 12px;
-  }
+  0%, 100% { height: 3px; }
+  50%       { height: 12px; }
 }
-
 .eq-bar {
   height: 3px;
   animation: eq-bounce 0.9s ease-in-out infinite;
@@ -768,8 +746,6 @@
 
 /* ============================================================================
    TOUCH TARGETS
-   Size only — never `display`. Overriding display from a broad attribute
-   selector collapses block-level controls.
    ============================================================================ */
 @media (pointer: coarse) {
   a[data-cursor],
@@ -784,36 +760,24 @@
    REDUCED MOTION / TRANSPARENCY / CONTRAST
    ============================================================================ */
 @media (prefers-reduced-motion: reduce) {
-  *,
-  *::before,
-  *::after {
+  *, *::before, *::after {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
   }
-
-  .paper-grain {
-    animation: none;
-  }
-
-  .reveal-pending {
-    visibility: visible;
-  }
+  .paper-grain { animation: none; }
+  .reveal-pending { visibility: visible; }
 }
 
 @media (prefers-reduced-transparency: reduce) {
-  .paper-grain {
-    display: none;
-  }
+  .paper-grain { display: none; }
 }
 
 @media (prefers-contrast: more) {
   :root {
-    --color-ink-faint: #4a4a46;
-    --color-rule: #8a8984;
+    --color-ink-faint: #5a7080;
+    --color-rule: #2c4060;
   }
-  .reg-mark {
-    opacity: 1;
-  }
+  .reg-mark { opacity: 0.8; }
 }

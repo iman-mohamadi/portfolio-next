@@ -103,7 +103,7 @@ CONTACT: Im.EnzO.021@gmail.com
           {/* Header */}
           <div>
             <div className="flex items-center justify-between pb-6 border-b border-rule mb-8">
-              <div className="flex items-center gap-2 text-xs uppercase tracking-[0.2em] text-spot">
+              <div className="flex items-center gap-2 text-xs uppercase tracking-[0.2em] text-neon">
                 <Terminal className="w-4 h-4" />
                 <span>Index</span>
               </div>
@@ -125,36 +125,36 @@ CONTACT: Im.EnzO.021@gmail.com
                 <div>
                   <button
                     onClick={() => scrollToSection('hero')}
-                    className="text-ink hover:text-spot transition-colors uppercase tracking-tight flex items-center gap-3 cursor-pointer"
+                    className="text-ink hover:text-neon transition-colors uppercase tracking-tight flex items-center gap-3 cursor-pointer"
                   >
-                    <span className="text-xs text-spot font-normal">01</span>
+                    <span className="text-xs text-neon font-normal">01</span>
                     <span>ARCHITECTURE</span>
                   </button>
                 </div>
                 <div>
                   <button
                     onClick={() => scrollToSection('capabilities')}
-                    className="text-ink hover:text-spot transition-colors uppercase tracking-tight flex items-center gap-3 cursor-pointer"
+                    className="text-ink hover:text-neon transition-colors uppercase tracking-tight flex items-center gap-3 cursor-pointer"
                   >
-                    <span className="text-xs text-spot font-normal">02</span>
+                    <span className="text-xs text-neon font-normal">02</span>
                     <span>CAPABILITIES</span>
                   </button>
                 </div>
                 <div>
                   <button
                     onClick={() => scrollToSection('work')}
-                    className="text-ink hover:text-spot transition-colors uppercase tracking-tight flex items-center gap-3 cursor-pointer"
+                    className="text-ink hover:text-neon transition-colors uppercase tracking-tight flex items-center gap-3 cursor-pointer"
                   >
-                    <span className="text-xs text-spot font-normal">03</span>
+                    <span className="text-xs text-neon font-normal">03</span>
                     <span>PLATFORMS</span>
                   </button>
                 </div>
                 <div>
                   <button
                     onClick={() => scrollToSection('contact')}
-                    className="text-ink hover:text-spot transition-colors uppercase tracking-tight flex items-center gap-3 cursor-pointer"
+                    className="text-ink hover:text-neon transition-colors uppercase tracking-tight flex items-center gap-3 cursor-pointer"
                   >
-                    <span className="text-xs text-spot font-normal">04</span>
+                    <span className="text-xs text-neon font-normal">04</span>
                     <span>CONTACT</span>
                   </button>
                 </div>
@@ -164,13 +164,13 @@ CONTACT: Im.EnzO.021@gmail.com
             {/* System Diagnostics */}
             <div className="p-4 bg-paper-dim border border-rule  space-y-3 text-xs mb-8">
               <div className="flex items-center gap-2 text-ink-soft font-semibold border-b border-rule pb-2">
-                <Cpu className="w-3.5 h-3.5 text-spot" />
+                <Cpu className="w-3.5 h-3.5 text-neon" />
                 <span>HARDWARE & SHADER PIPELINE</span>
               </div>
               <div className="space-y-1.5 text-[11px] text-ink-faint">
                 <div className="flex justify-between">
                   <span>GPU Acceleration:</span>
-                  <span className="text-spot">ACTIVE</span>
+                  <span className="text-neon">ACTIVE</span>
                 </div>
                 <div className="flex justify-between">
                   <span>Device Pixel Ratio:</span>
@@ -194,17 +194,17 @@ CONTACT: Im.EnzO.021@gmail.com
               <div className="border-l border-rule pl-4 space-y-4">
                 <div>
                   <div className="text-ink font-semibold">Senior Front-End Architect</div>
-                  <div className="text-spot text-[11px]">2021 — PRESENT</div>
+                  <div className="text-neon text-[11px]">2021 — PRESENT</div>
                   <div className="text-ink-faint text-[11px]">Directing global enterprise web infrastructure & micro-frontends.</div>
                 </div>
                 <div>
                   <div className="text-ink font-semibold">Lead WebGL & 3D Interactive Engineer</div>
-                  <div className="text-spot text-[11px]">2018 — 2021</div>
+                  <div className="text-neon text-[11px]">2018 — 2021</div>
                   <div className="text-ink-faint text-[11px]">Custom shader pipelines, visual configurators, generative canvases.</div>
                 </div>
                 <div>
                   <div className="text-ink font-semibold">Senior UI Systems Engineer</div>
-                  <div className="text-spot text-[11px]">2015 — 2018</div>
+                  <div className="text-neon text-[11px]">2015 — 2018</div>
                   <div className="text-ink-faint text-[11px]">High-speed SPA frameworks, SSR caching, reactive architectures.</div>
                 </div>
               </div>
@@ -215,7 +215,7 @@ CONTACT: Im.EnzO.021@gmail.com
           <div className="pt-6 border-t border-rule">
             <button
               onClick={handleDownloadDossier}
-              className="w-full text-xs uppercase tracking-[0.2em] bg-ink text-paper py-4 hover:bg-spot hover:text-paper transition-all duration-300 font-bold flex items-center justify-center gap-2 cursor-pointer"
+              className="w-full text-xs uppercase tracking-[0.2em] bg-neon-cold/10 text-neon-cold border border-neon-cold/30 py-4 hover:bg-neon hover:text-paper-deep hover:border-neon transition-all duration-300 font-bold flex items-center justify-center gap-2 cursor-pointer"
               data-cursor="active"
             >
               {downloaded ? (

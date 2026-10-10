@@ -47,7 +47,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   return (
     <header
       ref={headerRef}
-      className="fixed top-0 left-0 right-0 z-50 px-6 md:px-10 py-4 flex items-center justify-between gap-4 will-change-transform"
+      className="fixed top-0 left-0 right-0 z-50 px-6 md:px-10 py-4 flex items-center justify-between gap-4 will-change-transform bg-paper/80 backdrop-blur-md border-b border-rule"
     >
       <a
         href="#hero"
@@ -78,7 +78,7 @@ export const Navbar: React.FC<NavbarProps> = ({
           data-cursor="active"
         >
           <EncryptedText text="Let's create" />
-          <span className="w-2 h-2 bg-spot" aria-hidden="true" />
+          <span className="w-2 h-2 bg-neon led-pulse" aria-hidden="true" />
         </button>
       </nav>
 

@@ -67,7 +67,7 @@ export const VelocityMarquee: React.FC<VelocityMarqueeProps> = ({
     { scope: wrapRef, dependencies: [reduced, baseSpeed] }
   );
 
-  const sep = separator ?? <span className="text-spot px-6 md:px-10">◆</span>;
+  const sep = separator ?? <span className="text-neon px-6 md:px-10">◆</span>;
   const copy = (
     <>
       {items.map((item, i) => (

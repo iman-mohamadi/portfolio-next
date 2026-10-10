@@ -47,7 +47,7 @@ export const Footer: React.FC = () => {
           large enough to fill the width alongside the runner. */}
       <div className="split-line-mask px-2">
         <div
-          className="footer-wordmark flex items-end gap-[2vw] text-[#0a0a0a] select-none pointer-events-none translate-y-[0.14em]"
+          className="footer-wordmark flex items-end gap-[2vw] text-neon select-none pointer-events-none translate-y-[0.14em] neon-glow-amber"
           aria-hidden="true"
         >
           {/* The sprite is sized in absolute pixels, so at a fixed scale it

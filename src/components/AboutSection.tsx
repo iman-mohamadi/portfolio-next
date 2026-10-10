@@ -185,7 +185,7 @@ export const AboutSection: React.FC = () => {
           {COLLAGE.map((plate) => (
             <div
               key={plate.src}
-              className={`about-plate relative overflow-hidden bg-[#0a0a0a]/10 ${plate.className}`}
+              className={`about-plate relative overflow-hidden bg-on-spot/8 ${plate.className}`}
             >
               <img
                 src={plate.src}
@@ -197,7 +197,7 @@ export const AboutSection: React.FC = () => {
                   entry. Painted rather than a clip-path so it matches the
                   orange exactly while it is still covering the plate. */}
               <div
-                className="about-plate-cover absolute inset-0 origin-bottom bg-spot scale-y-0"
+                className="about-plate-cover absolute inset-0 origin-bottom bg-spot scale-y-0 [background:var(--color-spot)]"
                 aria-hidden="true"
               />
             </div>
@@ -216,7 +216,7 @@ export const AboutSection: React.FC = () => {
           {CAPABILITIES.map((cap) => (
             <li
               key={cap.index}
-              className="about-row sweep-row group border-t border-[#0a0a0a]/28 last:border-b py-7 md:py-9"
+              className="about-row sweep-row group border-t border-on-spot/18 last:border-b py-7 md:py-9"
               tabIndex={0}
             >
               <div className="grid grid-cols-1 md:grid-cols-12 gap-4 md:gap-8 items-baseline">

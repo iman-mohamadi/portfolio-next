@@ -250,10 +250,10 @@ export const WorkSection: React.FC = () => {
       </div>
 
       {/* Desktop reel */}
-      <div className="hidden lg:block border-y border-ink/35 mt-10">
+      <div className="hidden lg:block border-y border-neon-cold/18 mt-10">
         <div className="grid grid-cols-12 items-stretch min-h-[58svh]">
           {/* Ordinal + action */}
-          <div className="col-span-3 relative flex flex-col justify-between p-6 border-r border-ink/35">
+          <div className="col-span-3 relative flex flex-col justify-between p-6 border-r border-neon-cold/18">
             <div className="h-[clamp(4rem,9vw,7.5rem)] overflow-hidden">
               <div ref={numberRef} className="will-change-transform">
                 {PROJECTS.map((p, i) => (
@@ -304,7 +304,7 @@ export const WorkSection: React.FC = () => {
           </div>
 
           {/* Meta */}
-          <div className="col-span-3 relative flex flex-col justify-between p-6 border-l border-ink/35">
+          <div className="col-span-3 relative flex flex-col justify-between p-6 border-l border-neon-cold/18">
             <div aria-live="polite">
               <p className="label text-ink">{current.title}</p>
               <p className="label text-ink-faint">{current.subtitle}</p>
@@ -327,7 +327,7 @@ export const WorkSection: React.FC = () => {
               <span className="label text-ink-faint text-right">{p.subtitle}</span>
             </div>
 
-            <div className="relative aspect-[4/3] border border-ink/25 bg-paper-deep overflow-hidden">
+            <div className="relative aspect-[4/3] border border-neon-cold/18 bg-paper-deep overflow-hidden">
               <img
                 src={p.image}
                 alt={`${p.title} interface`}

@@ -66,7 +66,7 @@ export const TextMaze: React.FC = () => {
   return (
     <div className="absolute inset-0 flex items-center justify-center">
       <span
-        className="display text-spot text-[clamp(1.5rem,3.6vw,3rem)] tracking-[0.22em]"
+        className="display text-neon neon-glow-amber text-[clamp(1.5rem,3.6vw,3rem)] tracking-[0.22em]"
         aria-label={MAZE_WORD}
       >
         {chars.map((c, i) => (

@@ -239,7 +239,7 @@ export const ToolsSection: React.FC = () => {
                       return (
                         <span
                           key={n}
-                          className="tools-flash-cell bg-spot"
+                          className="tools-flash-cell bg-neon"
                           style={{
                             left: `${(c / FLASH_COLS) * 100}%`,
                             top: `${(r / FLASH_ROWS) * 100}%`,
@@ -257,7 +257,7 @@ export const ToolsSection: React.FC = () => {
         </div>
 
         {/* Footer strip: rolling title + counters between two rules. */}
-        <div ref={stacksRef} className="relative z-10 shrink-0 border-t border-b border-[#0a0a0a]/85 py-3 mb-8 flex items-end justify-between gap-8">
+        <div ref={stacksRef} className="relative z-10 shrink-0 border-t border-b border-on-spot/25 py-3 mb-8 flex items-end justify-between gap-8">
           <div className="flex items-end gap-5">
             <div className="tools-roll-mask h-[1.1em] text-[clamp(1rem,1.6vw,1.4rem)]">
               <div className="tools-roll">

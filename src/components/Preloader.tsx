@@ -3,12 +3,12 @@ import { gsap, useGSAP } from '../lib/gsap';
 import { useReducedMotion } from '../hooks/useReducedMotion';
 
 const BOOT_LINES = [
-  'Mixing ink',
-  'Setting type',
-  'Measuring the page',
-  'Screening the plate',
-  'Registering colour',
-  'On press',
+  'Initializing neural link',
+  'Loading memory sectors',
+  'Scanning mesh topology',
+  'Decrypting asset cache',
+  'Calibrating optics',
+  'System online',
 ];
 
 const COLUMNS = 6;
@@ -146,7 +146,7 @@ export const Preloader: React.FC<PreloaderProps> = ({ onComplete }) => {
           <div className="preloader-meta">
             <div className="font-display font-extrabold text-display-lg text-ink leading-none">
               <span ref={counterRef}>000</span>
-              <span className="text-spot">%</span>
+              <span className="text-neon">%</span>
             </div>
           </div>
 
@@ -161,7 +161,7 @@ export const Preloader: React.FC<PreloaderProps> = ({ onComplete }) => {
 
         {/* Progress rule */}
         <div className="preloader-meta w-full h-px bg-rule mt-8 overflow-hidden">
-          <div ref={barRef} className="h-full w-full bg-spot origin-left scale-x-0" />
+          <div ref={barRef} className="h-full w-full bg-neon origin-left scale-x-0" style={{ boxShadow: '0 0 8px var(--color-neon), 0 0 20px rgba(255,122,30,0.4)' }} />
         </div>
       </div>
     </div>

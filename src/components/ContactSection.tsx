@@ -124,10 +124,10 @@ export const ContactSection: React.FC = () => {
         />
       </div>
 
-      <div className="plate-frame relative z-10 w-full border border-[#0a0a0a]/85">
+      <div className="plate-frame relative z-10 w-full border border-on-spot/30">
         <div className="grid grid-cols-1 lg:grid-cols-3">
           {/* The ask */}
-          <div className="contact-panel p-7 md:p-10 border-b lg:border-b-0 lg:border-r border-[#0a0a0a]/85 flex flex-col">
+          <div className="contact-panel p-7 md:p-10 border-b lg:border-b-0 lg:border-r border-on-spot/30 flex flex-col">
             {/* Sized so each authored line actually fits the column — at 4.6vw
                 "Let's build" wrapped and the three lines became five. */}
             <h2 className="display text-[clamp(1.6rem,3vw,2.5rem)] leading-[0.92] mb-5">
@@ -145,7 +145,7 @@ export const ContactSection: React.FC = () => {
           </div>
 
           {/* Navigation */}
-          <div className="contact-panel p-7 md:p-10 border-b lg:border-b-0 lg:border-r border-[#0a0a0a]/85">
+          <div className="contact-panel p-7 md:p-10 border-b lg:border-b-0 lg:border-r border-on-spot/30">
             <h3 className="font-display font-bold text-xl mb-7">Links</h3>
             <ul className="space-y-3">
               {LINKS.map(({ label, id }) => (
@@ -163,7 +163,7 @@ export const ContactSection: React.FC = () => {
 
             <h3 className="label mt-12 mb-3">Availability</h3>
             <p className="label flex items-center gap-2">
-              <span className="w-1.5 h-1.5 bg-[#0a0a0a]" aria-hidden="true" />
+              <span className="w-1.5 h-1.5 bg-neon rounded-full led-pulse" aria-hidden="true" />
               Open for 2026
             </p>
           </div>
@@ -191,7 +191,7 @@ export const ContactSection: React.FC = () => {
               <label htmlFor="reply-to" className="label block mb-2">
                 Your email
               </label>
-              <div className="flex items-center gap-3 border-b border-[#0a0a0a]/60 pb-2">
+              <div className="flex items-center gap-3 border-b border-neon/25 pb-2">
                 <input
                   id="reply-to"
                   type="email"
@@ -210,7 +210,7 @@ export const ContactSection: React.FC = () => {
               <p className="label opacity-85 mt-2">Opens your mail app.</p>
             </form>
 
-            <div className="mt-10 pt-6 border-t border-[#0a0a0a]/30">
+            <div className="mt-10 pt-6 border-t border-on-spot/18">
               {/* Wrapper, because `.link-underline` sets inline-block and wins
                   over the utility — without it the button rides up onto the
                   same line and overlaps the address. */}

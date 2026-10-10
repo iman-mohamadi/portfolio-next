@@ -51,7 +51,7 @@ export function LensField({ scrollRef, pointerRef, quality }: LensFieldProps) {
   const colours = useMemo(
     () => ({
       lumen: token('--color-ink', '#eceae4'),
-      beam: token('--color-spot', '#ff6a30'),
+      beam: token('--color-neon', '#ff7a1e'),
       // The slab's own body: a warm near-black lifted just off the ground.
       ultra: token('--color-paper-deep', '#1f1f1c'),
       spill: new THREE.Color('#3fb0c8'),
